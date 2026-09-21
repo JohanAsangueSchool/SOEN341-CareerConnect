@@ -1,15 +1,33 @@
 # CareerConnect
 
-Description
+CarreerConnect is a web platform made to help users in their job search. With it, users can manage their resumes, submit and track applications.
 
 ## Problem
 
+When searching for a job, people often apply at multiple places with multiple resumes making it difficult to stay organized accross the process.
+
 ## Solution
+
+With CareerConnect, users will be able with only one account to access multiple job-offers, manage their resumes, submit applications and track their progress. Recruiters will also be able to post and manage job offers.
 
 ## Proposed Features
 
+- **Real-Time Chat:** Real-Time chat to allow communication between users and recruiters.
+- **Cover Letters Generator:** The platform AI will generate tailored cover letters for the user based on his resume and the job offer.
+
 ## Team Members
 
+- Johan Asangue Tchoupa, @JohanAsangueSchool
+- Jiaxin Li, @xxxxx
+- Sara Loudagh, @saraludus
+- David Peter, @davidpeter1123
+- Xinlei Tian, @xxxxx
+
 ## Technologies
+
+- **NextJS:** NextJS is a full-stack web development framework for javascript/typescript based on react. It is the main framework used for the project, handling both frontend and backend functions.
+- **PostgreSQL:** PostgreSQL is a database management system. It is the main technology used in the project to manage and store data.
+- **Prisma:** Prisma is a NodeJS based ORM, easing the integration between PostgreSQL nodejs.
+- **ChakraUI:** ChakraUI is an ui components library based on react.
 
 ## Setup Instructions

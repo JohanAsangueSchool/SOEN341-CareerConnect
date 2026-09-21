@@ -18,10 +18,10 @@ With CareerConnect, users will be able with only one account to access multiple 
 ## Team Members
 
 - Johan Asangue Tchoupa, @JohanAsangueSchool
-- Jiaxin Li, @xxxxx
+- Jiaxin Li, @Jiaxin-Li-code
 - Sara Loudagh, @saraludus
 - David Peter, @davidpeter1123
-- Xinlei Tian, @xxxxx
+- Xinlei Tian, @zaynezzz
 
 ## Technologies
 

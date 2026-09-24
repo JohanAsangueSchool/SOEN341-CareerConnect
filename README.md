@@ -31,3 +31,21 @@ With CareerConnect, users will be able with only one account to access multiple 
 - **ChakraUI:** ChakraUI is an ui components library based on react.
 
 ## Setup Instructions
+
+After cloning the repo, change into the code directory, career-connect:
+
+```bash
+cd career-connect
+```
+
+Install the project dependencies:
+
+```bash
+npm install
+```
+
+Run the project using the following command:
+
+```bash
+npm run dev
+```

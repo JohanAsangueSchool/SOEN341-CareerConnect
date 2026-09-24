@@ -23,6 +23,13 @@ With CareerConnect, users will be able with only one account to access multiple 
 - David Peter, @davidpeter1123
 - Xinlei Tian, @zaynezzz
 
+## Branching Strategy
+
+- The **main** branch is used for production.
+- The **dev** branch is the one used for development, where each feature is tested before deployment on **main**.
+- The **features/xxxx** branches are the one used to develop each feature independently before merging on **dev** for testing.
+- Any changes made to the **dev** or **main** branch should be made using a pull request, reviewed by at least another team member.
+
 ## Technologies
 
 - **NextJS:** NextJS is a full-stack web development framework for javascript/typescript based on react. It is the main framework used for the project, handling both frontend and backend functions.

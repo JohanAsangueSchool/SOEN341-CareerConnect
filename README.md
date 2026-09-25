@@ -42,7 +42,7 @@ With CareerConnect, users will be able with only one account to access multiple 
 After cloning the repo, change into the code directory, career-connect:
 
 ```bash
-cd career-connect
+cd App
 ```
 
 Install the project dependencies:

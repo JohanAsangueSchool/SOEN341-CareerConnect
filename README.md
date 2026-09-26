@@ -33,8 +33,7 @@ With CareerConnect, users will be able with only one account to access multiple 
 ## Technologies
 
 - **NextJS:** NextJS is a full-stack web development framework for javascript/typescript based on react. It is the main framework used for the project, handling both frontend and backend functions.
-- **PostgreSQL:** PostgreSQL is a database management system. It is the main technology used in the project to manage and store data.
-- **Prisma:** Prisma is a NodeJS based ORM, easing the integration between PostgreSQL nodejs.
+- **PostgreSQL/Supabase:** PostgreSQL is a database management system. It is the main technology used in the project to manage and store data.
 - **ChakraUI:** ChakraUI is an ui components library based on react.
 
 ## Setup Instructions

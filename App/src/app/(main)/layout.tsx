@@ -1,37 +1,32 @@
 'use client';
 
 import { toaster } from '@/components/ui/toaster';
+import { UserProfileProvider, UserProfileType } from '@/contexts/user_profile';
 import { getUserProfile } from '@/lib/supabase/apis';
 import { createClientSupabase } from '@/lib/supabase/client';
 import { validRequestStatus } from '@/utils/function';
-import { Avatar, Menu, Portal, Spinner } from '@chakra-ui/react';
+import { Avatar, Link, Menu, Portal, Spinner, Tabs } from '@chakra-ui/react';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { FaFile, FaHouse } from 'react-icons/fa6';
 
 export default function MainLayout({ children }: LayoutProps<'/'>) {
     const router = useRouter();
     const supabase = createClientSupabase();
-    const [isLoading, setIsLoading] = useState(false);
-    const [fullName, setFullName] = useState<string>('');
-    const [avatarUrl, setAvatarUrl] = useState<string>('');
+    const [userProfile, setUserProfile] = useState<UserProfileType>();
 
     useEffect(() => {
         let ignore = false;
 
         async function load() {
             try {
-                setIsLoading(true);
-
                 const { data, error, status } = await getUserProfile(supabase);
 
                 if (ignore) return;
-                console.log(data, error, status);
                 if (!validRequestStatus(status) || error || !data) throw new Error();
 
-                setFullName(`${data.first_name} ${data.last_name}`);
-                setAvatarUrl(data.avatar_url);
-                setIsLoading(false);
+                setUserProfile(data);
             } catch {
                 if (ignore) return;
 
@@ -46,14 +41,13 @@ export default function MainLayout({ children }: LayoutProps<'/'>) {
             }
         }
 
-        load();
-
+        if (!userProfile) load();
         return () => {
             ignore = true;
         };
-    }, [router, supabase]);
+    }, [userProfile, router, supabase]);
 
-    return isLoading ? (
+    return !userProfile ? (
         <Spinner
             size='xl'
             position='fixed'
@@ -62,33 +56,50 @@ export default function MainLayout({ children }: LayoutProps<'/'>) {
             transform='translate(-50%, -50%)'
         />
     ) : (
-        <>
-            <MainLayoutHeader supabase={supabase} fullName={fullName} avatarUrl={avatarUrl} />
-            <main className='h-full flex-1 overflow-auto'>{children}</main>
-        </>
+        <UserProfileProvider userProfile={userProfile}>
+            <MainLayoutHeader supabase={supabase} userProfile={userProfile} />
+            <main className='flex h-full flex-1 flex-col overflow-auto'>{children}</main>
+        </UserProfileProvider>
     );
 }
 
 function MainLayoutHeader({
     supabase,
-    fullName,
-    avatarUrl,
+    userProfile,
 }: {
     supabase: SupabaseClient;
-    fullName: string;
-    avatarUrl: string;
+    userProfile: UserProfileType;
 }) {
     const router = useRouter();
+    const pathname = usePathname();
+    const fullName = `${userProfile.first_name} ${userProfile.last_name}`;
 
     return (
         <header className='flex w-full items-center gap-2 border-b p-2'>
+            <Tabs.Root variant='subtle' value={pathname.split('/').slice(0, 2).join('/')}>
+                <Tabs.List>
+                    <Tabs.Trigger value='/' asChild>
+                        <Link unstyled href='/'>
+                            <FaHouse />
+                            Home
+                        </Link>
+                    </Tabs.Trigger>
+                    <Tabs.Trigger value='/resumes' asChild>
+                        <Link unstyled href='/resumes'>
+                            <FaFile />
+                            Resumes
+                        </Link>
+                    </Tabs.Trigger>
+                </Tabs.List>
+            </Tabs.Root>
+
             <div className='flex-1' />
 
             <Menu.Root positioning={{ placement: 'bottom-start' }}>
                 <Menu.Trigger rounded='full' focusRing='outside'>
                     <Avatar.Root size='sm'>
                         <Avatar.Fallback name={fullName} />
-                        <Avatar.Image src={avatarUrl} />
+                        {userProfile.avatar_url && <Avatar.Image src={userProfile.avatar_url} />}
                     </Avatar.Root>
                 </Menu.Trigger>
                 <Portal>
@@ -97,7 +108,11 @@ function MainLayoutHeader({
                             <Menu.Item value='fullName' disabled>
                                 {fullName}
                             </Menu.Item>
-                            <Menu.Item value='account'>Account</Menu.Item>
+                            <Menu.Item value='account' asChild>
+                                <Link href='/account' className='hover:no-underline'>
+                                    Account
+                                </Link>
+                            </Menu.Item>
                             <Menu.Separator />
                             <Menu.Item
                                 value='logout'

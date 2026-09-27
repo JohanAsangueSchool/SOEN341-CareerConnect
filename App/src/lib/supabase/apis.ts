@@ -5,7 +5,7 @@ export async function getUserProfile(client: SupabaseClient) {
     console.log(claims?.data?.claims.sub);
     const { data, error, status } = await client
         .from('profiles')
-        .select(`first_name, last_name, email, avatar_url`)
+        .select(`first_name, last_name, email, account_type, avatar_url`)
         .eq('id', claims?.data?.claims.sub)
         .single();
 

@@ -2,16 +2,12 @@
 
 import { PasswordInput } from '@/components/ui/password-input';
 import { toaster } from '@/components/ui/toaster';
+import { loginFormSchema } from '@/utils/forms';
 import { Button, Field, Fieldset, Input } from '@chakra-ui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-
-const loginSchema = z.object({
-    email: z.email('Invalid email address.').trim().min(1, 'Email is required.'),
-    password: z.string().trim().min(1, 'Password is required.'),
-});
+import { login } from './actions';
 
 export default function SignInPage() {
     const {
@@ -19,17 +15,12 @@ export default function SignInPage() {
         handleSubmit,
         formState: { errors, isSubmitting },
     } = useForm({
-        resolver: zodResolver(loginSchema),
+        resolver: zodResolver(loginFormSchema),
     });
 
     const onSubmit = handleSubmit(async (data) => {
         try {
-            const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                body: JSON.stringify(data),
-            });
-
-            if (!res.ok) throw new Error();
+            await login(data);
         } catch {
             toaster.create({
                 title: 'Error',

@@ -84,12 +84,14 @@ function MainLayoutHeader({
                             Home
                         </Link>
                     </Tabs.Trigger>
-                    <Tabs.Trigger value='/resumes' asChild>
-                        <Link unstyled href='/resumes'>
-                            <FaFile />
-                            Resumes
-                        </Link>
-                    </Tabs.Trigger>
+                    {userProfile.account_type === 'Worker' && (
+                        <Tabs.Trigger value='/resumes' asChild>
+                            <Link unstyled href='/resumes'>
+                                <FaFile />
+                                Resumes
+                            </Link>
+                        </Tabs.Trigger>
+                    )}
                 </Tabs.List>
             </Tabs.Root>
 

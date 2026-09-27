@@ -38,5 +38,15 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(new URL('/signin', url));
     }
 
+    const { data } = await supabase
+        .from('profiles')
+        .select(`account_type`)
+        .eq('id', user?.id)
+        .single();
+
+    if (data?.account_type !== 'Worker' && ['/resumes'].some((e) => url.pathname.startsWith(e))) {
+        return NextResponse.redirect(new URL('/', url));
+    }
+
     return supabaseResponse;
 }

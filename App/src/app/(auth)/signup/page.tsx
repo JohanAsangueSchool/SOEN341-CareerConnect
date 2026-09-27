@@ -90,6 +90,20 @@ export default function SignUpPage() {
                         <Field.ErrorText>{errors.email?.message}</Field.ErrorText>
                     </Field.Root>
 
+                    <Field.Root invalid={!!errors.phone}>
+                        <Field.Label>Phone</Field.Label>
+                        <Input {...register('phone')} />
+                        <Field.HelperText>XXX-XXX-XXXX</Field.HelperText>
+                        <Field.ErrorText>{errors.phone?.message}</Field.ErrorText>
+                    </Field.Root>
+
+                    <Field.Root invalid={!!errors.postal_code}>
+                        <Field.Label>Postal Code</Field.Label>
+                        <Input {...register('postal_code')} />
+                        <Field.HelperText>XXX XXX</Field.HelperText>
+                        <Field.ErrorText>{errors.postal_code?.message}</Field.ErrorText>
+                    </Field.Root>
+
                     <Field.Root invalid={!!errors.password}>
                         <Field.Label>Password</Field.Label>
                         <PasswordInput {...register('password')} />

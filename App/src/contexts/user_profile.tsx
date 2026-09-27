@@ -6,6 +6,8 @@ export type UserProfileType = {
     first_name: string;
     last_name: string;
     email: string;
+    phone: string;
+    postal_code: string;
     account_type: string;
     avatar_url: string;
 };

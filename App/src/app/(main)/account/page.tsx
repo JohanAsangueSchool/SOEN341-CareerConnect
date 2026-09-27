@@ -9,16 +9,18 @@ const fieldLabels: { [k: string]: string } = {
     first_name: 'First Name',
     last_name: 'Last Name',
     email: 'Email',
+    phone: 'Phone',
+    postal_code: 'Postal Code',
 };
 
 const concertOneFont = Concert_One({ subsets: ['latin', 'latin-ext'], weight: ['400'] });
 
-export default function ResumesPage() {
+export default function AccountPage() {
     const userProfile = useUserProfile();
     const { avatar_url, account_type, ...otherFields } = userProfile!;
 
     return (
-        <main className='m-12 flex w-md flex-col gap-6 self-center'>
+        <main className='m-12 flex w-full max-w-md flex-col gap-6 self-center'>
             <div className='mb-8 flex items-start justify-between gap-8'>
                 <div className='group relative size-40 cursor-pointer'>
                     <Avatar.Root

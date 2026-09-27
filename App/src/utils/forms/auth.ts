@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import { AccountTypeEnum } from './enums';
+import { AccountTypeEnum } from '../enums';
 
 export const loginFormSchema = z.object({
     email: z.email('Invalid email address.').trim().min(1, 'Email is required.'),

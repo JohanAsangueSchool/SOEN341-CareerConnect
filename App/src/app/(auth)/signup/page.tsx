@@ -3,7 +3,7 @@
 import { PasswordInput } from '@/components/ui/password-input';
 import { toaster } from '@/components/ui/toaster';
 import { AccountTypeEnumValues } from '@/utils/enums';
-import { signupFormSchema } from '@/utils/forms';
+import { signupFormSchema } from '@/utils/forms/auth';
 import { Button, Field, Fieldset, HStack, Input, RadioCard } from '@chakra-ui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';

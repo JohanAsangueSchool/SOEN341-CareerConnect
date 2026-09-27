@@ -2,7 +2,7 @@
 
 import { PasswordInput } from '@/components/ui/password-input';
 import { toaster } from '@/components/ui/toaster';
-import { loginFormSchema } from '@/utils/forms';
+import { loginFormSchema } from '@/utils/forms/auth';
 import { Button, Field, Fieldset, Input } from '@chakra-ui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';

@@ -2,14 +2,12 @@
 
 import { PasswordInput } from '@/components/ui/password-input';
 import { toaster } from '@/components/ui/toaster';
-import { AccountTypeEnum } from '@/utils/enums';
-import { Button, Field, Fieldset, Input } from '@chakra-ui/react';
+import { AccountTypeEnum, AccountTypeEnumValues } from '@/utils/enums';
+import { Button, Field, Fieldset, HStack, Input, RadioCard } from '@chakra-ui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-
-const today = new Date();
 
 const signupSchema = z.object({
     firstname: z.string().trim().min(1, 'First name is required.'),
@@ -17,12 +15,6 @@ const signupSchema = z.object({
     email: z.email('Invalid email address.').trim().min(1, 'Email is required.'),
     password: z.string().trim().min(1, 'Password is required.'),
     accountType: AccountTypeEnum,
-    birthdate: z
-        .date()
-        .min(
-            new Date(today.getFullYear() - 18, today.getMonth(), today.getMonth()),
-            'User must be at least 18 years old.',
-        ),
 });
 
 export default function SignUpPage() {
@@ -36,7 +28,7 @@ export default function SignUpPage() {
 
     const onSubmit = handleSubmit(async (data) => {
         try {
-            const res = await fetch('/api/auth/login', {
+            const res = await fetch('/api/auth/signup', {
                 method: 'POST',
                 body: JSON.stringify(data),
             });
@@ -76,6 +68,24 @@ export default function SignUpPage() {
                         <Field.ErrorText>{errors.lastname?.message}</Field.ErrorText>
                     </Field.Root>
 
+                    <Field.Root invalid={!!errors.accountType}>
+                        <Field.Label>Account Type</Field.Label>
+                        <RadioCard.Root size='sm' width='full'>
+                            <HStack align='stretch'>
+                                {AccountTypeEnumValues.map((item) => (
+                                    <RadioCard.Item key={item} value={item}>
+                                        <RadioCard.ItemHiddenInput {...register('accountType')} />
+                                        <RadioCard.ItemControl>
+                                            <RadioCard.ItemText>{item}</RadioCard.ItemText>
+                                            <RadioCard.ItemIndicator />
+                                        </RadioCard.ItemControl>
+                                    </RadioCard.Item>
+                                ))}
+                            </HStack>
+                        </RadioCard.Root>
+                        <Field.ErrorText>{errors.accountType?.message}</Field.ErrorText>
+                    </Field.Root>
+
                     <Field.Root invalid={!!errors.email}>
                         <Field.Label>Email</Field.Label>
                         <Input type='email' {...register('email')} />
@@ -84,7 +94,7 @@ export default function SignUpPage() {
 
                     <Field.Root invalid={!!errors.password}>
                         <Field.Label>Password</Field.Label>
-                        <PasswordInput {...register('password', { required: true })} />
+                        <PasswordInput {...register('password')} />
                         <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
                     </Field.Root>
 

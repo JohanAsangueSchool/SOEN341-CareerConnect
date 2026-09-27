@@ -55,7 +55,7 @@ export default function SignInPage() {
 
                     <Field.Root invalid={!!errors.password}>
                         <Field.Label>Password</Field.Label>
-                        <PasswordInput {...register('password', { required: true })} />
+                        <PasswordInput {...register('password')} />
                         <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
                     </Field.Root>
 

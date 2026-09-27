@@ -1,6 +1,8 @@
 import * as z from 'zod';
 
-export const AccountTypeEnum = z.enum(['Worker', 'Recruiter'], {
+export const AccountTypeEnumValues = ['Worker', 'Recruiter'];
+
+export const AccountTypeEnum = z.enum(AccountTypeEnumValues, {
     error: () => 'Invalid account type.',
 });
 

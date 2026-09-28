@@ -58,7 +58,9 @@ export default function MainLayout({ children }: LayoutProps<'/'>) {
     ) : (
         <UserProfileProvider userProfile={userProfile}>
             <MainLayoutHeader supabase={supabase} userProfile={userProfile} />
-            <main className='flex h-full flex-1 flex-col overflow-auto'>{children}</main>
+            <main className='flex h-full max-h-full min-h-80 flex-1 flex-col overflow-auto'>
+                {children}
+            </main>
         </UserProfileProvider>
     );
 }

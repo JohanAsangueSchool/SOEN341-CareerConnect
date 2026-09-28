@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { signup } from './actions';
 import { useState } from 'react';
+import { unstable_rethrow } from 'next/navigation';
 
 export default function SignUpPage() {
     const {
@@ -32,7 +33,8 @@ export default function SignUpPage() {
             }
 
             await signup(data);
-        } catch {
+        } catch (error) {
+            unstable_rethrow(error);
             toaster.create({
                 title: 'Error',
                 description: 'Failed to create an account.',

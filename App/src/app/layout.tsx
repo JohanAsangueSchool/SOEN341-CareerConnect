@@ -21,7 +21,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
             style={interFont.style}
             className='h-screen antialiased'
         >
-            <body className='flex min-h-full flex-col'>
+            <body className='flex h-full flex-col'>
                 <Provider>
                     {children}
                     <Toaster />

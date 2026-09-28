@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { login } from './actions';
+import { unstable_rethrow } from 'next/navigation';
 
 export default function SignInPage() {
     const {
@@ -21,7 +22,9 @@ export default function SignInPage() {
     const onSubmit = handleSubmit(async (data) => {
         try {
             await login(data);
-        } catch {
+        } catch (error) {
+            unstable_rethrow(error);
+
             toaster.create({
                 title: 'Error',
                 description: 'Failed to login.',

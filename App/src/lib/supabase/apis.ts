@@ -84,3 +84,69 @@ export async function getJob(client: SupabaseClient, id: string) {
 
     return { data, error, status };
 }
+
+
+export async function applyToJob(
+    client: SupabaseClient,
+    jobId: string,
+) {
+    const { data: claimsData, error: claimsError } =
+        await client.auth.getClaims();
+
+    const userId = claimsData?.claims?.sub;
+
+    if (claimsError || !userId) {
+        return {
+            data: null,
+            error: claimsError ?? new Error('You must be logged in to apply.'),
+            status: 401,
+        };
+    }
+
+    const { data, error, status } = await client
+        .from('applications')
+        .insert({
+            job_id: jobId,
+            user_id: userId,
+        })
+        .select('id, job_id, user_id, status, applied_at')
+        .single();
+
+    return { data, error, status };
+}
+
+export async function getUserApplications(
+    client: SupabaseClient,
+) {
+    const { data: claimsData, error: claimsError } =
+        await client.auth.getClaims();
+
+    const userId = claimsData?.claims?.sub;
+
+    if (claimsError || !userId) {
+        return {
+            data: null,
+            error: claimsError ?? new Error('You must be logged in.'),
+            status: 401,
+        };
+    }
+
+    const { data, error, status } = await client
+        .from('applications')
+        .select(`
+            id,
+            job_id,
+            status,
+            applied_at,
+            jobs (
+                title,
+                company,
+                location,
+                job_type
+            )
+        `)
+        .eq('user_id', userId)
+        .order('applied_at', { ascending: false });
+
+    return { data, error, status };
+}

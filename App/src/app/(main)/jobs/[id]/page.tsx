@@ -13,7 +13,7 @@ import {
 } from 'react-icons/fa6';
 
 import { toaster } from '@/components/ui/toaster';
-import { getJob } from '@/lib/supabase/apis';
+import { applyToJob, getJob } from '@/lib/supabase/apis';
 import { createClientSupabase } from '@/lib/supabase/client';
 import { validRequestStatus } from '@/utils/function';
 import { formatSalary, jobTypeColorPalette } from '@/utils/jobs';
@@ -36,6 +36,8 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
     const router = useRouter();
     const { id } = use(params);
     const [job, setJob] = useState<JobDetailType>();
+    const [applying, setApplying] = useState(false);
+    const [hasApplied, setHasApplied] = useState(false);
 
     // The listing passes its filters in the query string so Back restores the same results
     const query = new URLSearchParams(
@@ -44,6 +46,46 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
         ),
     ).toString();
     const backHref = query ? `/jobs?${query}` : '/jobs';
+        async function handleApply() {
+        setApplying(true);
+
+        try {
+            const { error } = await applyToJob(createClientSupabase(), id);
+
+            if (error) {
+                if (error.code === '23505') {
+                    toaster.create({
+                        title: 'Already applied',
+                        description: 'You have already applied to this job.',
+                        type: 'info',
+                        closable: true,
+                    });
+                    setHasApplied(true);
+                    return;
+                }
+
+                throw error;
+            }
+
+            setHasApplied(true);
+            toaster.create({
+                title: 'Application submitted!',
+                description: 'Your application was submitted successfully.',
+                type: 'success',
+                closable: true,
+            });
+        } catch (error) {
+            console.error('Application error details:', JSON.stringify(error, Object.getOwnPropertyNames(error as object)));
+            toaster.create({
+                title: 'Application failed',
+                description: 'Could not submit your application. Please try again.',
+                type: 'error',
+                closable: true,
+            });
+        } finally {
+            setApplying(false);
+        }
+    }
 
     useEffect(() => {
         let ignore = false;
@@ -137,6 +179,16 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                             {job.description || 'No description provided.'}
                         </Text>
                     </Card.Body>
+                    <Card.Footer borderTopWidth='1px' paddingTop={4}>
+                        <Button
+                            colorPalette='blue'
+                            onClick={handleApply}
+                            loading={applying}
+                            disabled={applying || hasApplied || job.status !== 'Open'}
+                        >
+                            {hasApplied ? 'Applied' : job.status !== 'Open' ? 'Applications closed' : 'Apply Now'}
+                        </Button>
+                    </Card.Footer>
                 </Card.Root>
             )}
         </main>

@@ -460,15 +460,16 @@ Until they are configured that job fails while `build` still passes.
 
 ## 9. Known issues found by the suite
 
-Last run (production build, excluding `@writes`): **30 of 34 pass**. The
-failures below are defects in the application, not in the tests, so the tests
-are left asserting the intended behaviour.
+Last run (production build, excluding `@writes`): **34 of 34 pass** with the
+fix in #35. Without it, AC-02.5, AC-02.7, AC-02.12 and AC-02.13 fail on the
+first defect below. The tests assert the intended behaviour, so they were left
+unchanged while the application was fixed.
 
-| Criteria | Defect | Where |
-|---|---|---|
-| AC-02.5, AC-02.7, AC-02.12, AC-02.13 | Opening an existing resume shows an empty *Create Resume* form instead of the stored resume. `/resumes/edit` is prerendered as a static page, so `use(searchParams)` never receives `id`. Reading it with `useSearchParams()` should fix it. | `App/src/app/(main)/resumes/edit/page.tsx` |
-| AC-A.1, AC-A.2 | Registration fails with a server error. The `handle_new_user` trigger does not copy `phone` or `postal_code` from the sign-up data, and the default for `profiles.phone` violates the `phone_format_dash` check. | Supabase: `public.handle_new_user`, `public.profiles` |
-| — | The last-name validation message reads "Last name must be minimum 2 requicharactersred." | `App/src/utils/forms/auth.ts` |
+| Criteria | Defect | Where | Status |
+|---|---|---|---|
+| AC-02.5, AC-02.7, AC-02.12, AC-02.13 | Opening an existing resume showed an empty *Create Resume* form instead of the stored resume. `/resumes/edit` is prerendered as a static page, so `use(searchParams)` never received `id`. | `App/src/app/(main)/resumes/edit/page.tsx` | Fixed in #35 |
+| AC-A.1, AC-A.2 | Registration fails with a server error. The `handle_new_user` trigger does not copy `phone` or `postal_code` from the sign-up data, and the default for `profiles.phone` violates the `phone_format_dash` check. | Supabase: `public.handle_new_user`, `public.profiles` | Open |
+| — | The last-name validation message read "Last name must be minimum 2 requicharactersred." | `App/src/utils/forms/auth.ts` | Fixed in #35 |
 
 Supabase's `signOut()` ends every session of the account, so AC-A.11 signs the
 Worker back in afterwards to keep the shared session usable by the other specs.

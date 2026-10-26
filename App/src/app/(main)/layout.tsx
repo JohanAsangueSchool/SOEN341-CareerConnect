@@ -9,7 +9,7 @@ import { Avatar, Link, Menu, Portal, Spinner, Tabs } from '@chakra-ui/react';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { FaFile, FaHouse } from 'react-icons/fa6';
+import { FaBriefcase, FaFile, FaHouse } from 'react-icons/fa6';
 
 export default function MainLayout({ children }: LayoutProps<'/'>) {
     const router = useRouter();
@@ -94,6 +94,12 @@ function MainLayoutHeader({
                             </Link>
                         </Tabs.Trigger>
                     )}
+                    <Tabs.Trigger value='/postings' asChild>
+                        <Link unstyled href='/postings'>
+                            <FaBriefcase />
+                            Postings
+                        </Link>
+                    </Tabs.Trigger>
                 </Tabs.List>
             </Tabs.Root>
 

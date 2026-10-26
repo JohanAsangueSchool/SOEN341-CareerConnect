@@ -38,6 +38,10 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(new URL('/signin', url));
     }
 
+    if (user && ['/signin', '/signup'].includes(url.pathname)) {
+        return NextResponse.redirect(new URL('/', url));
+    }
+
     const { data } = await supabase
         .from('profiles')
         .select(`account_type`)

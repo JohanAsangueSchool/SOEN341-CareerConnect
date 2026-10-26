@@ -13,7 +13,11 @@ import {
 } from 'react-icons/fa6';
 
 import { toaster } from '@/components/ui/toaster';
-import { applyToJob, getJob } from '@/lib/supabase/apis';
+import {
+    applyToJob,
+    getJob,
+    hasUserApplied,
+} from '@/lib/supabase/apis';
 import { createClientSupabase } from '@/lib/supabase/client';
 import { validRequestStatus } from '@/utils/function';
 import { formatSalary, jobTypeColorPalette } from '@/utils/jobs';
@@ -46,14 +50,14 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
         ),
     ).toString();
     const backHref = query ? `/jobs?${query}` : '/jobs';
-        async function handleApply() {
+    async function handleApply() {
         setApplying(true);
 
         try {
             const { error } = await applyToJob(createClientSupabase(), id);
 
             if (error) {
-                if (error.code === '23505') {
+                if ('code' in error && error.code === '23505') {
                     toaster.create({
                         title: 'Already applied',
                         description: 'You have already applied to this job.',
@@ -91,13 +95,25 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
         let ignore = false;
 
         async function load() {
+            const client = createClientSupabase();
+
             try {
-                const { data, error, status } = await getJob(createClientSupabase(), id);
+                const { data, error, status } = await getJob(client, id);
 
                 if (ignore) return;
-                if (!validRequestStatus(status) || error || !data) throw new Error();
+                if (!validRequestStatus(status) || error || !data) {
+                    throw new Error('Failed to load job posting.');
+                }
 
                 setJob(data);
+
+                const appliedResult = await hasUserApplied(client, id);
+
+                if (ignore) return;
+
+                if (!appliedResult.error && validRequestStatus(appliedResult.status)) {
+                    setHasApplied(appliedResult.data);
+                }
             } catch {
                 if (ignore) return;
 
@@ -107,15 +123,18 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                     type: 'error',
                     closable: true,
                 });
+
                 router.push(backHref);
             }
         }
 
         load();
+
         return () => {
             ignore = true;
         };
     }, [id, router, backHref]);
+
 
     return (
         <main className='m-12 flex w-full max-w-3xl flex-col gap-6 self-center'>

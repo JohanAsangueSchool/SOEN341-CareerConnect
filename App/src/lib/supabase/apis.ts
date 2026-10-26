@@ -150,3 +150,35 @@ export async function getUserApplications(
 
     return { data, error, status };
 }
+
+
+export async function hasUserApplied(
+    client: SupabaseClient,
+    jobId: string,
+) {
+    const { data: claimsData, error: claimsError } =
+        await client.auth.getClaims();
+
+    const userId = claimsData?.claims?.sub;
+
+    if (claimsError || !userId) {
+        return {
+            data: false,
+            error: claimsError ?? new Error('You must be logged in.'),
+            status: 401,
+        };
+    }
+
+    const { data, error, status } = await client
+        .from('applications')
+        .select('id')
+        .eq('job_id', jobId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    return {
+        data: !!data,
+        error,
+        status,
+    };
+}

@@ -14,8 +14,7 @@ import {
     Textarea,
 } from '@chakra-ui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { unstable_rethrow, useRouter } from 'next/navigation';
-import { use } from 'react';
+import { unstable_rethrow, useRouter, useSearchParams } from 'next/navigation';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { FaChevronLeft, FaPlus, FaTrash } from 'react-icons/fa6';
 
@@ -55,9 +54,11 @@ const withMonthInputs = <T extends { startMonth?: string | Date; endMonth?: stri
     item: T,
 ) => ({ ...item, startMonth: dateToMonth(item.startMonth), endMonth: dateToMonth(item.endMonth) });
 
-export default function ResumesEditPage({ searchParams }: PageProps<'/resumes/edit'>) {
+export default function ResumesEditPage() {
     const router = useRouter();
-    const { id } = use(searchParams);
+    // Read from the URL on the client: this page is prerendered as static, so
+    // the searchParams prop would hold the empty build-time value.
+    const id = useSearchParams().get('id') ?? undefined;
     const isEditing = typeof id === 'string';
 
     const {

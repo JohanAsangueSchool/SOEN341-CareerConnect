@@ -9,7 +9,7 @@ import { Avatar, Link, Menu, Portal, Spinner, Tabs } from '@chakra-ui/react';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { FaFile, FaHouse } from 'react-icons/fa6';
+import { FaFile, FaHouse, FaBriefcase, FaClipboardCheck } from 'react-icons/fa6';
 
 export default function MainLayout({ children }: LayoutProps<'/'>) {
     const router = useRouter();
@@ -86,13 +86,30 @@ function MainLayoutHeader({
                             Home
                         </Link>
                     </Tabs.Trigger>
+
+                    <Tabs.Trigger value='/jobs' asChild>
+                        <Link unstyled href='/jobs'>
+                            <FaBriefcase />
+                            Jobs
+                        </Link>
+                    </Tabs.Trigger>
+
                     {userProfile.account_type === 'Worker' && (
-                        <Tabs.Trigger value='/resumes' asChild>
-                            <Link unstyled href='/resumes'>
-                                <FaFile />
-                                Resumes
-                            </Link>
-                        </Tabs.Trigger>
+                        <>
+                            <Tabs.Trigger value='/resumes' asChild>
+                                <Link unstyled href='/resumes'>
+                                    <FaFile />
+                                    Resumes
+                                </Link>
+                            </Tabs.Trigger>
+
+                            <Tabs.Trigger value='/applications' asChild>
+                                <Link unstyled href='/applications'>
+                                    <FaClipboardCheck />
+                                    My Applications
+                                </Link>
+                            </Tabs.Trigger>
+                        </>
                     )}
                 </Tabs.List>
             </Tabs.Root>

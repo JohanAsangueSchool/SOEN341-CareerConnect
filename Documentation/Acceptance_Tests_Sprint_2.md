@@ -33,6 +33,7 @@ matrix linking each criterion to its code artifact and its automated test.
 | `AC-<story>.<n>` | Acceptance criterion identifier, e.g. `AC-02.3` |
 | `Implemented` | The feature exists; the criterion is verifiable today |
 | `Partial` | The story is partly built; see the story's notes |
+| `Not met` | The feature exists but does not behave as the criterion states |
 | `Not built` | No implementation yet; the criterion is a specification |
 | Automated | Covered by a Playwright test in `App/tests/` |
 | Manual | Verified by hand against the running application |
@@ -247,7 +248,7 @@ display.
 |---|---|
 | **Priority** | High |
 | **Story Points** | 8 |
-| **Status** | **Not built** |
+| **Status** | Implemented |
 
 **Description (scenario):** As a job seeker, I want to search and filter job
 postings by keywords, location, and job type so that I can find relevant job
@@ -260,11 +261,11 @@ provide search and filtering capabilities.
 
 | ID | Criterion | Status |
 |---|---|---|
-| AC-03.1 | A signed-in Worker sees a list of all available job postings, each showing at minimum its title, company and location. | Not built |
-| AC-03.2 | Entering a keyword returns only postings whose title or description contains that keyword. | Not built |
-| AC-03.3 | Selecting a location returns only postings in that location. | Not built |
-| AC-03.4 | Selecting a job type returns only postings of that type. | Not built |
-| AC-03.5 | A search or filter combination matching no postings shows an explicit "no results" message rather than an empty page. | Not built |
+| AC-03.1 | A signed-in Worker sees a list of all available job postings, each showing at minimum its title, company and location. | Implemented |
+| AC-03.2 | Entering a keyword returns only postings whose title or description contains that keyword. | Implemented |
+| AC-03.3 | Selecting a location returns only postings in that location. | Implemented |
+| AC-03.4 | Selecting a job type returns only postings of that type. | Implemented |
+| AC-03.5 | A search or filter combination matching no postings shows an explicit "no results" message rather than an empty page. | Implemented |
 
 ---
 
@@ -274,7 +275,7 @@ provide search and filtering capabilities.
 |---|---|
 | **Priority** | Medium |
 | **Story Points** | 3 |
-| **Status** | **Not built** |
+| **Status** | Implemented |
 
 **Description (scenario):** As a job seeker, I want to view detailed job
 descriptions so that I can better understand each position and decide whether to
@@ -286,9 +287,9 @@ apply.
 
 | ID | Criterion | Status |
 |---|---|---|
-| AC-16.1 | Selecting a posting from the listings opens a detail view for that posting. | Not built |
-| AC-16.2 | The detail view shows the full job description together with the company, location, job type and posting date. | Not built |
-| AC-16.3 | The user can return from the detail view to the listings with their previous search and filters still applied. | Not built |
+| AC-16.1 | Selecting a posting from the listings opens a detail view for that posting. | Implemented |
+| AC-16.2 | The detail view shows the full job description together with the company, location, job type and posting date. | Implemented |
+| AC-16.3 | The user can return from the detail view to the listings with their previous search and filters still applied. | Implemented |
 
 ---
 
@@ -298,7 +299,7 @@ apply.
 |---|---|
 | **Priority** | High |
 | **Story Points** | 5 |
-| **Status** | **Not built** |
+| **Status** | **Partial** — applying works; no resume is chosen |
 
 **Description (scenario):** As a job seeker, I want to submit a job application
 through the platform so that I can apply for positions without managing
@@ -311,10 +312,16 @@ confirmation of successful application submission.
 
 | ID | Criterion | Status |
 |---|---|---|
-| AC-05.1 | A Worker can apply to a posting by selecting one of their own resumes. | Not built |
-| AC-05.2 | On successful submission the Worker is shown an explicit confirmation. | Not built |
-| AC-05.3 | A Worker who has already applied to a posting cannot submit a second application to it. | Not built |
-| AC-05.4 | A Worker with no resumes is prevented from applying and is told a resume is required. | Not built |
+| AC-05.1 | A Worker can apply to a posting by selecting one of their own resumes. | **Not met** |
+| AC-05.2 | On successful submission the Worker is shown an explicit confirmation. | Implemented |
+| AC-05.3 | A Worker who has already applied to a posting cannot submit a second application to it. | Implemented |
+| AC-05.4 | A Worker with no resumes is prevented from applying and is told a resume is required. | **Not met** |
+
+> **Gap against the story.** The *Apply Now* button submits straight away: it
+> never asks for a resume (AC-05.1) and does not check that the Worker has one
+> (AC-05.4). The application is stored without a resume, so a recruiter has
+> nothing to review. AC-05.1 is automated as an expected failure; AC-05.4 needs
+> an account with no resumes and is verified by hand.
 
 ---
 
@@ -324,7 +331,7 @@ confirmation of successful application submission.
 |---|---|
 | **Priority** | High |
 | **Story Points** | 5 |
-| **Status** | **Not built** |
+| **Status** | **Partial** — list built; statuses differ; no recruiter update |
 
 **Description (scenario):** As a job seeker, I want to track the status of my
 applications so that I know whether the status is applied, under review,
@@ -336,9 +343,15 @@ interview, offered, or rejected.
 
 | ID | Criterion | Status |
 |---|---|---|
-| AC-06.1 | A Worker sees a list of every application they have submitted, each identifying the posting applied to. | Not built |
-| AC-06.2 | Each application displays its current status as one of: applied, under review, interview, offered, rejected. | Not built |
+| AC-06.1 | A Worker sees a list of every application they have submitted, each identifying the posting applied to. | Implemented |
+| AC-06.2 | Each application displays its current status as one of: applied, under review, interview, offered, rejected. | **Not met** |
 | AC-06.3 | When a recruiter changes an application's status, the Worker sees the updated status on their next visit to the tracking page. | Not built |
+
+> **Gap against the story.** The application statuses in the app are
+> *Pending, Reviewed, Accepted, Rejected*. The story and AC-06.2 use *Applied,
+> Under Review, Interview, Offered, Rejected*. AC-06.2 is automated as an
+> expected failure until the two agree. AC-06.3 needs the recruiter screens
+> from US-08.
 
 > **Note.** The Sprint 1 user story listed the statuses as "submitted, under
 > review, rejected, or accepted". Sprint 2 revised them to "applied, under
@@ -391,30 +404,35 @@ management, and display applications received for a posting.
 | AC-02.11 – AC-02.14 | Implemented | `App/src/app/(main)/resumes/edit/page.tsx`, `resumes/edit/actions.ts` | `App/tests/resumes.spec.ts` |
 | AC-02.15 | Implemented | `App/src/app/(main)/resumes/page.tsx` | `App/tests/resumes.spec.ts` |
 | AC-02.16 – AC-02.18 | Not built | — | — |
-| AC-03.1 – AC-03.5 | Not built | — | — |
-| AC-16.1 – AC-16.3 | Not built | — | — |
-| AC-05.1 – AC-05.4 | Not built | — | — |
-| AC-06.1 – AC-06.3 | Not built | — | — |
+| AC-03.1 – AC-03.5 | Implemented | `App/src/app/(main)/jobs/page.tsx`, `App/src/lib/supabase/apis.ts` | `App/tests/jobs.spec.ts` |
+| AC-16.1 – AC-16.3 | Implemented | `App/src/app/(main)/jobs/[id]/page.tsx` | `App/tests/jobs.spec.ts` |
+| AC-05.2 – AC-05.3 | Implemented | `App/src/app/(main)/jobs/[id]/page.tsx`, `App/src/lib/supabase/apis.ts` | `App/tests/applications.spec.ts` |
+| AC-05.1 | Not met | `App/src/app/(main)/jobs/[id]/page.tsx` | `App/tests/applications.spec.ts` (expected failure) |
+| AC-05.4 | Not met | `App/src/app/(main)/jobs/[id]/page.tsx` | Manual |
+| AC-06.1 | Implemented | `App/src/app/(main)/applications/page.tsx` | `App/tests/applications.spec.ts` |
+| AC-06.2 | Not met | `App/src/app/(main)/applications/page.tsx` | `App/tests/applications.spec.ts` (expected failure) |
+| AC-06.3 | Not built | — | — |
 | AC-08.1 – AC-08.5 | Not built | — | — |
 
 ## 7. Coverage summary
 
-| Story | Criteria | Implemented | Not built |
-|---|---|---|---|
-| Foundation — auth & access control | 16 | 16 | 0 |
-| US-01 — Profile management | 6 | 4 | 2 |
-| US-02 — Resume management | 18 | 15 | 3 |
-| US-03 — Job search | 5 | 0 | 5 |
-| US-16 — Job details | 3 | 0 | 3 |
-| US-05 — Application submission | 4 | 0 | 4 |
-| US-06 — Application tracking | 3 | 0 | 3 |
-| US-08 — Recruiter postings | 5 | 0 | 5 |
-| **Total** | **60** | **35** | **25** |
+| Story | Criteria | Implemented | Not met | Not built |
+|---|---|---|---|---|
+| Foundation — auth & access control | 16 | 16 | 0 | 0 |
+| US-01 — Profile management | 6 | 4 | 0 | 2 |
+| US-02 — Resume management | 18 | 15 | 0 | 3 |
+| US-03 — Job search | 5 | 5 | 0 | 0 |
+| US-16 — Job details | 3 | 3 | 0 | 0 |
+| US-05 — Application submission | 4 | 2 | 2 | 0 |
+| US-06 — Application tracking | 3 | 1 | 1 | 1 |
+| US-08 — Recruiter postings | 5 | 0 | 0 | 5 |
+| **Total** | **60** | **46** | **3** | **11** |
 
 **Sprint 2 completion status.** Because a story is not complete until its
-acceptance tests pass, on these criteria **no Sprint 2 story is yet complete**.
-US-01 and US-02 are closest, each blocked on a capability named in its own story
-text — profile editing for US-01, file upload for US-02.
+acceptance tests pass, **US-03 and US-16 are complete**. The others are blocked
+on a capability named in their own story text: profile editing (US-01), file
+upload (US-02), choosing a resume when applying (US-05), the agreed status list
+(US-06), and the recruiter screens (US-08).
 
 ## 8. Running the automated tests
 
@@ -430,8 +448,15 @@ The suite requires `App/.env` and the six `E2E_*` account variables described in
 section 3. Criteria marked `Not built` have no automated test and are excluded
 from the suite.
 
-**34 of the 35 implemented criteria are automated.** AC-02.3 is manual, for the
-reason given in section 5.
+**45 of the 46 implemented criteria are automated.** AC-02.3 is manual, for the
+reason given in section 5. Two `Not met` criteria, AC-05.1 and AC-06.2, are
+automated as expected failures (`test.fail()`): they pass while the gap exists
+and fail once it is closed, as a reminder to remove the marker.
+
+The application tests intercept the request that submits an application, so
+they exercise the page without writing to Supabase; a real application would
+use up a posting on the shared Worker account every run. AC-06.1 reads the
+Worker's existing applications and needs at least one to exist.
 
 AC-A.1 and AC-A.2 register new users, so they are tagged `@writes`. To run
 everything except those:
@@ -470,6 +495,8 @@ unchanged while the application was fixed.
 | AC-02.5, AC-02.7, AC-02.12, AC-02.13 | Opening an existing resume showed an empty *Create Resume* form instead of the stored resume. `/resumes/edit` is prerendered as a static page, so `use(searchParams)` never received `id`. | `App/src/app/(main)/resumes/edit/page.tsx` | Fixed in #35 |
 | AC-A.1, AC-A.2 | Registration fails with a server error. The `handle_new_user` trigger does not copy `phone` or `postal_code` from the sign-up data, and the default for `profiles.phone` violates the `phone_format_dash` check. | Supabase: `public.handle_new_user`, `public.profiles` | Open |
 | — | The last-name validation message read "Last name must be minimum 2 requicharactersred." | `App/src/utils/forms/auth.ts` | Fixed in #35 |
+| AC-05.1, AC-05.4 | *Apply Now* submits without asking for a resume or checking that the Worker has one. | `App/src/app/(main)/jobs/[id]/page.tsx` | Open |
+| AC-06.2 | Application statuses are *Pending, Reviewed, Accepted, Rejected* instead of *Applied, Under Review, Interview, Offered, Rejected*. | `App/src/app/(main)/applications/page.tsx`, `applications.status` in Supabase | Open |
 
 Supabase's `signOut()` ends every session of the account, so AC-A.11 signs the
 Worker back in afterwards to keep the shared session usable by the other specs.

@@ -1,139 +1,245 @@
-type Job = {
-    id: number;
+'use client';
+
+import {
+    Badge,
+    Button,
+    Card,
+    EmptyState,
+    HStack,
+    Input,
+    InputGroup,
+    NativeSelect,
+    Spinner,
+    Text,
+} from '@chakra-ui/react';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import {
+    FaArrowRight,
+    FaBriefcase,
+    FaDollarSign,
+    FaLayerGroup,
+    FaLocationDot,
+    FaMagnifyingGlass,
+    FaXmark,
+} from 'react-icons/fa6';
+
+import { toaster } from '@/components/ui/toaster';
+import { getJobFilterOptions, getJobs } from '@/lib/supabase/apis';
+import { createClientSupabase } from '@/lib/supabase/client';
+import { validRequestStatus } from '@/utils/function';
+import { formatSalary, jobTypeColorPalette } from '@/utils/jobs';
+
+type JobCardType = {
+    id: string;
     title: string;
     company: string;
-    location: string;
-    jobType: string;
-    salary: string;
     description: string;
-    postedAt: string;
+    location: string;
+    category: string;
+    job_type: string;
+    salary_min: number | null;
+    salary_max: number | null;
+    created_at: string;
 };
 
-const jobs: Job[] = [
-    {
-        id: 1,
-        title: 'Frontend Developer Intern',
-        company: 'TechNova Solutions',
-        location: 'Montreal, QC',
-        jobType: 'Internship',
-        salary: '$22–$28/hour',
-        description:
-            'Develop responsive web applications using React, TypeScript, and CSS. Collaborate with designers and backend developers to improve user experience.',
-        postedAt: '2026-10-20',
-    },
-    {
-        id: 2,
-        title: 'Software Engineer',
-        company: 'MapleTech Inc.',
-        location: 'Toronto, ON',
-        jobType: 'Full-time',
-        salary: '$85,000–$110,000/year',
-        description:
-            'Design, develop, and maintain scalable software applications. Write clean code, participate in code reviews, and work with cross-functional teams.',
-        postedAt: '2026-10-18',
-    },
-    {
-        id: 3,
-        title: 'UI/UX Designer',
-        company: 'Creative Pixel Studio',
-        location: 'Remote',
-        jobType: 'Part-time',
-        salary: '$40–$60/hour',
-        description:
-            'Create intuitive user interfaces and engaging user experiences. Develop wireframes, prototypes, and design systems using Figma.',
-        postedAt: '2026-10-22',
-    },
-    {
-        id: 4,
-        title: 'Data Analyst',
-        company: 'NorthStar Analytics',
-        location: 'Vancouver, BC',
-        jobType: 'Full-time',
-        salary: '$70,000–$90,000/year',
-        description:
-            'Analyze business data, build dashboards, and generate actionable insights. Use SQL, Python, and data visualization tools to support decision-making.',
-        postedAt: '2026-10-15',
-    },
-    {
-        id: 5,
-        title: 'Marketing Assistant',
-        company: 'BrightPath Media',
-        location: 'Ottawa, ON',
-        jobType: 'Part-time',
-        salary: '$20–$25/hour',
-        description:
-            'Assist with social media campaigns, create marketing content, track campaign performance, and support the marketing team with daily activities.',
-        postedAt: '2026-10-24',
-    },
-];
+function uniqueSorted(values: string[]) {
+    return [...new Set(values)].sort((a, b) => a.localeCompare(b));
+}
 
 export default function JobsPage() {
+    const [jobs, setJobs] = useState<JobCardType[]>();
+    const [keyword, setKeyword] = useState('');
+    const [debouncedKeyword, setDebouncedKeyword] = useState('');
+    const [location, setLocation] = useState('');
+    const [category, setCategory] = useState('');
+    const [locationOptions, setLocationOptions] = useState<string[]>([]);
+    const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+
+    const hasFilters = keyword !== '' || location !== '' || category !== '';
+
+    // Wait until the user stops typing before querying
+    useEffect(() => {
+        const timeout = setTimeout(() => setDebouncedKeyword(keyword), 300);
+        return () => clearTimeout(timeout);
+    }, [keyword]);
+
+    useEffect(() => {
+        let ignore = false;
+
+        async function loadOptions() {
+            const { data, error, status } = await getJobFilterOptions(createClientSupabase());
+
+            if (ignore || !validRequestStatus(status) || error || !data) return;
+
+            setLocationOptions(uniqueSorted(data.map((job) => job.location)));
+            setCategoryOptions(uniqueSorted(data.map((job) => job.category)));
+        }
+
+        loadOptions();
+        return () => {
+            ignore = true;
+        };
+    }, []);
+
+    useEffect(() => {
+        let ignore = false;
+
+        async function load() {
+            try {
+                const { data, error, status } = await getJobs(createClientSupabase(), {
+                    keyword: debouncedKeyword,
+                    location,
+                    category,
+                });
+
+                if (ignore) return;
+                if (!validRequestStatus(status) || error || !data) throw new Error();
+
+                setJobs(data);
+            } catch {
+                if (ignore) return;
+
+                setJobs([]);
+                toaster.create({
+                    title: 'Error',
+                    description: 'Failed to load job listings.',
+                    type: 'error',
+                    closable: true,
+                });
+            }
+        }
+
+        load();
+        return () => {
+            ignore = true;
+        };
+    }, [debouncedKeyword, location, category]);
+
+    function clearFilters() {
+        setKeyword('');
+        setDebouncedKeyword('');
+        setLocation('');
+        setCategory('');
+    }
+
     return (
-        <main className='min-h-screen bg-gray-50'>
-            <div className='mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8'>
+        <main className='m-12 flex w-full max-w-3xl flex-col gap-6 self-center'>
+            <div className='flex flex-wrap items-center gap-3'>
+                <InputGroup flex='1' minWidth='3xs' startElement={<FaMagnifyingGlass />}>
+                    <Input
+                        type='search'
+                        placeholder='Search by title, company or keyword'
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                    />
+                </InputGroup>
+                <NativeSelect.Root width='3xs'>
+                    <NativeSelect.Field
+                        aria-label='Location'
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                    >
+                        <option value=''>All locations</option>
+                        {locationOptions.map((option) => (
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                </NativeSelect.Root>
+                <NativeSelect.Root width='3xs'>
+                    <NativeSelect.Field
+                        aria-label='Category'
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                    >
+                        <option value=''>All categories</option>
+                        {categoryOptions.map((option) => (
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                </NativeSelect.Root>
+                {hasFilters && (
+                    <Button variant='ghost' onClick={clearFilters}>
+                        <FaXmark />
+                        Clear filters
+                    </Button>
+                )}
+            </div>
 
-                <header className='mb-8'>
-                    <p className='mb-2 text-sm font-semibold tracking-wider text-blue-600 uppercase'>
-                        Career Opportunities
-                    </p>
-
-                    <h1 className='text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl'>
-                        Job Listings
-                    </h1>
-
-                    <p className='mt-3 text-gray-600'>
-                        Explore opportunities and find your next career move.
-                    </p>
-                </header>
-
-
-                <div className='mb-5 flex items-center justify-between'>
-                    <p className='text-sm text-gray-600'>
-                        <span className='font-semibold text-gray-900'>{jobs.length}</span> available
-                        positions
-                    </p>
-                </div>
-
-
-                <div className='space-y-5'>
+            {!jobs ? (
+                <Spinner size='xl' className='self-center' />
+            ) : jobs.length === 0 ? (
+                <EmptyState.Root>
+                    <EmptyState.Content>
+                        <EmptyState.Indicator>
+                            <FaBriefcase />
+                        </EmptyState.Indicator>
+                        <EmptyState.Title>
+                            {hasFilters ? 'No jobs match your filters' : 'No jobs found'}
+                        </EmptyState.Title>
+                        <EmptyState.Description>
+                            {hasFilters
+                                ? 'Try a different keyword, location or category.'
+                                : 'There are no open positions at the moment.'}
+                        </EmptyState.Description>
+                    </EmptyState.Content>
+                </EmptyState.Root>
+            ) : (
+                <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
                     {jobs.map((job) => (
-                        <article
-                            key={job.id}
-                            className='rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6'
-                        >
-                            <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
-                                <div className='min-w-0 flex-1'>
-                                    <h2 className='text-xl font-semibold text-gray-900'>
-                                        {job.title}
-                                    </h2>
-
-                                    <p className='mt-2 font-medium text-gray-700'>{job.company}</p>
-
-                                    <div className='mt-3 flex flex-wrap gap-2'>
-                                        <span className='rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700'>
-                                            {job.location}
-                                        </span>
-
-                                        <span className='rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700'>
-                                            {job.jobType}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <p className='shrink-0 text-sm text-gray-500'>{job.postedAt}</p>
-                            </div>
-
-                            <p className='mt-5 text-sm leading-6 text-gray-600'>
-                                {job.description}
-                            </p>
-
-                            <div className='mt-5 border-t border-gray-100 pt-4'>
-                                <p className='text-sm font-semibold text-gray-900'>{job.salary}</p>
-                            </div>
-                        </article>
+                        <JobCard key={job.id} job={job} />
                     ))}
                 </div>
-            </div>
+            )}
         </main>
+    );
+}
+
+function JobCard({ job }: { job: JobCardType }) {
+    return (
+        <Card.Root size='sm'>
+            <Card.Header>
+                <HStack justify='space-between' align='start'>
+                    <Card.Title lineClamp={1}>{job.title}</Card.Title>
+                    <Badge colorPalette={jobTypeColorPalette[job.job_type] ?? 'gray'}>
+                        {job.job_type}
+                    </Badge>
+                </HStack>
+                <Text textStyle='xs' color='fg.muted'>
+                    {job.company} · Posted {new Date(job.created_at).toLocaleDateString()}
+                </Text>
+            </Card.Header>
+            <Card.Body gap={3}>
+                <Card.Description lineClamp={3}>{job.description}</Card.Description>
+                <HStack gap={4} color='fg.muted' textStyle='sm' wrap='wrap'>
+                    <HStack gap={1}>
+                        <FaLocationDot />
+                        {job.location}
+                    </HStack>
+                    <HStack gap={1}>
+                        <FaLayerGroup />
+                        {job.category}
+                    </HStack>
+                    <HStack gap={1}>
+                        <FaDollarSign />
+                        {formatSalary(job.salary_min, job.salary_max)}
+                    </HStack>
+                </HStack>
+            </Card.Body>
+            <Card.Footer justifyContent='flex-end'>
+                <Link href={`/jobs/${job.id}`}>
+                    <Button variant='outline' size='sm'>
+                        View
+                        <FaArrowRight />
+                    </Button>
+                </Link>
+            </Card.Footer>
+        </Card.Root>
     );
 }

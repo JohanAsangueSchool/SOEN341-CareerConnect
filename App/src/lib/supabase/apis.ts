@@ -42,7 +42,7 @@ export async function getJobs(client: SupabaseClient, filters: JobFilters = {}) 
     let query = client
         .from('jobs')
         .select(
-            `id, title, company, location, category, job_type, salary_min, salary_max, created_at`,
+            `id, title, company, description, location, category, job_type, salary_min, salary_max, created_at`,
         )
         .eq('status', 'Open')
         .order('created_at', { ascending: false });

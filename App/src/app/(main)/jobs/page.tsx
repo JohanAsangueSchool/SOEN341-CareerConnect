@@ -13,7 +13,8 @@ import {
     Text,
 } from '@chakra-ui/react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 import {
     FaArrowRight,
     FaBriefcase,
@@ -27,6 +28,7 @@ import {
 import { toaster } from '@/components/ui/toaster';
 import { getJobFilterOptions, getJobs } from '@/lib/supabase/apis';
 import { createClientSupabase } from '@/lib/supabase/client';
+import { JobTypeEnumValues } from '@/utils/enums';
 import { validRequestStatus } from '@/utils/function';
 import { formatSalary, jobTypeColorPalette } from '@/utils/jobs';
 
@@ -48,21 +50,56 @@ function uniqueSorted(values: string[]) {
 }
 
 export default function JobsPage() {
+    return (
+        <main className='m-12 flex w-full max-w-3xl flex-col gap-6 self-center'>
+            {/* useSearchParams requires a Suspense boundary so the page can still be prerendered */}
+            <Suspense fallback={<Spinner size='xl' className='self-center' />}>
+                <JobsListing />
+            </Suspense>
+        </main>
+    );
+}
+
+function JobsListing() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    // Filters live in the URL so they survive navigating to a job and back
+    const keywordParam = searchParams.get('keyword') ?? '';
+    const location = searchParams.get('location') ?? '';
+    const category = searchParams.get('category') ?? '';
+    const jobType = searchParams.get('type') ?? '';
+
     const [jobs, setJobs] = useState<JobCardType[]>();
-    const [keyword, setKeyword] = useState('');
-    const [debouncedKeyword, setDebouncedKeyword] = useState('');
-    const [location, setLocation] = useState('');
-    const [category, setCategory] = useState('');
+    const [keyword, setKeyword] = useState(keywordParam);
     const [locationOptions, setLocationOptions] = useState<string[]>([]);
     const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
 
-    const hasFilters = keyword !== '' || location !== '' || category !== '';
+    const hasFilters = keyword !== '' || location !== '' || category !== '' || jobType !== '';
 
-    // Wait until the user stops typing before querying
+    function updateParams(updates: Record<string, string>) {
+        const params = new URLSearchParams(searchParams.toString());
+        Object.entries(updates).forEach(([key, value]) =>
+            value ? params.set(key, value) : params.delete(key),
+        );
+
+        const query = params.toString();
+        router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    }
+
+    function clearFilters() {
+        setKeyword('');
+        router.replace(pathname, { scroll: false });
+    }
+
+    // Wait until the user stops typing before updating the URL
     useEffect(() => {
-        const timeout = setTimeout(() => setDebouncedKeyword(keyword), 300);
+        if (keyword === keywordParam) return;
+
+        const timeout = setTimeout(() => updateParams({ keyword }), 300);
         return () => clearTimeout(timeout);
-    }, [keyword]);
+    });
 
     useEffect(() => {
         let ignore = false;
@@ -88,9 +125,10 @@ export default function JobsPage() {
         async function load() {
             try {
                 const { data, error, status } = await getJobs(createClientSupabase(), {
-                    keyword: debouncedKeyword,
+                    keyword: keywordParam,
                     location,
                     category,
+                    jobType,
                 });
 
                 if (ignore) return;
@@ -114,19 +152,12 @@ export default function JobsPage() {
         return () => {
             ignore = true;
         };
-    }, [debouncedKeyword, location, category]);
-
-    function clearFilters() {
-        setKeyword('');
-        setDebouncedKeyword('');
-        setLocation('');
-        setCategory('');
-    }
+    }, [keywordParam, location, category, jobType]);
 
     return (
-        <main className='m-12 flex w-full max-w-3xl flex-col gap-6 self-center'>
-            <div className='flex flex-wrap items-center gap-3'>
-                <InputGroup flex='1' minWidth='3xs' startElement={<FaMagnifyingGlass />}>
+        <>
+            <div className='flex flex-col gap-3'>
+                <InputGroup startElement={<FaMagnifyingGlass />}>
                     <Input
                         type='search'
                         placeholder='Search by title, company or keyword'
@@ -134,42 +165,35 @@ export default function JobsPage() {
                         onChange={(e) => setKeyword(e.target.value)}
                     />
                 </InputGroup>
-                <NativeSelect.Root width='3xs'>
-                    <NativeSelect.Field
-                        aria-label='Location'
+                <div className='flex flex-wrap items-center gap-3'>
+                    <FilterSelect
+                        label='Location'
+                        allLabel='All locations'
                         value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                    >
-                        <option value=''>All locations</option>
-                        {locationOptions.map((option) => (
-                            <option key={option} value={option}>
-                                {option}
-                            </option>
-                        ))}
-                    </NativeSelect.Field>
-                    <NativeSelect.Indicator />
-                </NativeSelect.Root>
-                <NativeSelect.Root width='3xs'>
-                    <NativeSelect.Field
-                        aria-label='Category'
+                        options={locationOptions}
+                        onChange={(value) => updateParams({ location: value })}
+                    />
+                    <FilterSelect
+                        label='Category'
+                        allLabel='All categories'
                         value={category}
-                        onChange={(e) => setCategory(e.target.value)}
-                    >
-                        <option value=''>All categories</option>
-                        {categoryOptions.map((option) => (
-                            <option key={option} value={option}>
-                                {option}
-                            </option>
-                        ))}
-                    </NativeSelect.Field>
-                    <NativeSelect.Indicator />
-                </NativeSelect.Root>
-                {hasFilters && (
-                    <Button variant='ghost' onClick={clearFilters}>
-                        <FaXmark />
-                        Clear filters
-                    </Button>
-                )}
+                        options={categoryOptions}
+                        onChange={(value) => updateParams({ category: value })}
+                    />
+                    <FilterSelect
+                        label='Job type'
+                        allLabel='All job types'
+                        value={jobType}
+                        options={JobTypeEnumValues}
+                        onChange={(value) => updateParams({ type: value })}
+                    />
+                    {hasFilters && (
+                        <Button variant='ghost' onClick={clearFilters}>
+                            <FaXmark />
+                            Clear filters
+                        </Button>
+                    )}
+                </div>
             </div>
 
             {!jobs ? (
@@ -185,7 +209,7 @@ export default function JobsPage() {
                         </EmptyState.Title>
                         <EmptyState.Description>
                             {hasFilters
-                                ? 'Try a different keyword, location or category.'
+                                ? 'Try a different keyword, location, category or job type.'
                                 : 'There are no open positions at the moment.'}
                         </EmptyState.Description>
                     </EmptyState.Content>
@@ -193,15 +217,47 @@ export default function JobsPage() {
             ) : (
                 <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
                     {jobs.map((job) => (
-                        <JobCard key={job.id} job={job} />
+                        <JobCard key={job.id} job={job} query={searchParams.toString()} />
                     ))}
                 </div>
             )}
-        </main>
+        </>
     );
 }
 
-function JobCard({ job }: { job: JobCardType }) {
+function FilterSelect({
+    label,
+    allLabel,
+    value,
+    options,
+    onChange,
+}: {
+    label: string;
+    allLabel: string;
+    value: string;
+    options: string[];
+    onChange: (value: string) => void;
+}) {
+    return (
+        <NativeSelect.Root flex='1' minWidth='3xs'>
+            <NativeSelect.Field
+                aria-label={label}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+            >
+                <option value=''>{allLabel}</option>
+                {options.map((option) => (
+                    <option key={option} value={option}>
+                        {option}
+                    </option>
+                ))}
+            </NativeSelect.Field>
+            <NativeSelect.Indicator />
+        </NativeSelect.Root>
+    );
+}
+
+function JobCard({ job, query }: { job: JobCardType; query: string }) {
     return (
         <Card.Root size='sm'>
             <Card.Header>
@@ -233,7 +289,8 @@ function JobCard({ job }: { job: JobCardType }) {
                 </HStack>
             </Card.Body>
             <Card.Footer justifyContent='flex-end'>
-                <Link href={`/jobs/${job.id}`}>
+                {/* Pass the filters along so the detail page can link back to the same results */}
+                <Link href={`/jobs/${job.id}${query ? `?${query}` : ''}`}>
                     <Button variant='outline' size='sm'>
                         View
                         <FaArrowRight />

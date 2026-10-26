@@ -1,4 +1,5 @@
 import * as z from 'zod';
+
 import { AccountTypeEnum } from '../enums';
 
 export const loginFormSchema = z.object({
@@ -25,3 +26,19 @@ export const signupFormSchema = z.object({
 });
 
 export type signupFormSchemaType = z.infer<typeof signupFormSchema>;
+
+export const accountFormSchema = signupFormSchema.omit({ account_type: true, password: true });
+
+export type accountFormSchemaType = z.infer<typeof accountFormSchema>;
+
+export const passwordFormSchema = z
+    .object({
+        password: signupFormSchema.shape.password,
+        confirm_password: z.string().trim(),
+    })
+    .refine((data) => data.password === data.confirm_password, {
+        message: 'Both password must be identicals.',
+        path: ['confirm_password'],
+    });
+
+export type passwordFormSchemaType = z.infer<typeof passwordFormSchema>;

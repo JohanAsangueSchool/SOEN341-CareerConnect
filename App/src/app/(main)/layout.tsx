@@ -56,7 +56,7 @@ export default function MainLayout({ children }: LayoutProps<'/'>) {
             transform='translate(-50%, -50%)'
         />
     ) : (
-        <UserProfileProvider userProfile={userProfile}>
+        <UserProfileProvider userProfile={userProfile} setUserProfile={setUserProfile}>
             <MainLayoutHeader supabase={supabase} userProfile={userProfile} />
             <main className='flex h-full max-h-full min-h-80 flex-1 flex-col overflow-auto'>
                 {children}

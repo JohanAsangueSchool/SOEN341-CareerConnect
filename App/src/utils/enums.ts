@@ -15,3 +15,11 @@ export const ResumeStatusEnum = z.enum(ResumeStatusEnumValues, {
 });
 
 export type ResumeStatusEnumType = z.infer<typeof ResumeStatusEnum>;
+
+export const JobTypeEnumValues = ['Full-time', 'Part-time', 'Internship', 'Contract'];
+
+export const JobTypeEnum = z.enum(JobTypeEnumValues, {
+    error: () => 'Invalid job type.',
+});
+
+export type JobTypeEnumType = z.infer<typeof JobTypeEnum>;

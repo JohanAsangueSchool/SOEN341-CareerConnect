@@ -36,6 +36,7 @@ export type JobFilters = {
     keyword?: string;
     location?: string;
     category?: string;
+    jobType?: string;
 };
 
 export async function getJobs(client: SupabaseClient, filters: JobFilters = {}) {
@@ -56,6 +57,7 @@ export async function getJobs(client: SupabaseClient, filters: JobFilters = {}) 
     }
     if (filters.location) query = query.eq('location', filters.location);
     if (filters.category) query = query.eq('category', filters.category);
+    if (filters.jobType) query = query.eq('job_type', filters.jobType);
 
     const { data, error, status } = await query;
 

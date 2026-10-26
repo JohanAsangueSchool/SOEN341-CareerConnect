@@ -32,10 +32,18 @@ type JobDetailType = {
     created_at: string;
 };
 
-export default function JobDetailPage({ params }: PageProps<'/jobs/[id]'>) {
+export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs/[id]'>) {
     const router = useRouter();
     const { id } = use(params);
     const [job, setJob] = useState<JobDetailType>();
+
+    // The listing passes its filters in the query string so Back restores the same results
+    const query = new URLSearchParams(
+        Object.entries(use(searchParams)).filter(
+            (entry): entry is [string, string] => typeof entry[1] === 'string',
+        ),
+    ).toString();
+    const backHref = query ? `/jobs?${query}` : '/jobs';
 
     useEffect(() => {
         let ignore = false;
@@ -57,7 +65,7 @@ export default function JobDetailPage({ params }: PageProps<'/jobs/[id]'>) {
                     type: 'error',
                     closable: true,
                 });
-                router.push('/jobs');
+                router.push(backHref);
             }
         }
 
@@ -65,11 +73,11 @@ export default function JobDetailPage({ params }: PageProps<'/jobs/[id]'>) {
         return () => {
             ignore = true;
         };
-    }, [id, router]);
+    }, [id, router, backHref]);
 
     return (
         <main className='m-12 flex w-full max-w-3xl flex-col gap-6 self-center'>
-            <Link href='/jobs' className='self-start'>
+            <Link href={backHref} className='self-start'>
                 <Button variant='outline'>
                     <FaChevronLeft />
                     Back

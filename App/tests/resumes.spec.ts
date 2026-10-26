@@ -150,11 +150,16 @@ test('AC-02.10 a project with an invalid link is rejected', async ({ page }) => 
 
     const projects = resumeSection(page, 'Projects');
     await projects.getByLabel('Title').fill('Portfolio');
-    await projects.getByLabel('Link').fill('notaurl');
+    const link = projects.getByLabel('Link');
+    await link.fill('notaurl');
 
     await page.getByRole('button', { name: 'Create Resume' }).click();
 
-    await expect(projects).toContainText(/invalid url/i);
+    // The field is type="url", so the browser rejects the value with its own
+    // message before the form's schema runs (z.url() accepts anything the
+    // browser does, so the schema's "Invalid URL" is never reached).
+    expect(await link.evaluate((el: HTMLInputElement) => el.validity.typeMismatch)).toBe(true);
+    expect(await link.evaluate((el: HTMLInputElement) => el.validationMessage)).not.toBe('');
     await expect(page).toHaveURL('/resumes/edit');
 });
 
@@ -245,7 +250,8 @@ test('AC-02.15 a resume card shows its section counts', async ({ page }) => {
     await page.getByRole('button', { name: 'Create Resume' }).click();
     await expect(page).toHaveURL('/resumes');
 
-    // 1 education, 1 experience, 1 skill, 0 projects — in that order.
-    const body = resumeCard(page, title).locator('[data-part="body"]');
-    await expect(body).toContainText(/1\D+1\D+1\D+0/);
+    // Each count sits next to its section icon: 1 education, 1 experience,
+    // 1 skill, 0 projects — in that order. The Edit button also has an icon.
+    const counts = resumeCard(page, title).locator('svg').locator('xpath=..').filter({ hasNotText: 'Edit' });
+    await expect(counts).toHaveText(['1', '1', '1', '0']);
 });

@@ -35,8 +35,9 @@ test.describe('Recruiter accounts', () => {
         await page.goto('/');
 
         const header = page.locator('header');
-        await expect(header.getByRole('link', { name: 'Home' })).toBeVisible();
-        await expect(header.getByRole('link', { name: 'Resumes' })).toHaveCount(0);
+        // The header navigation renders as tabs.
+        await expect(header.getByRole('tab', { name: 'Home' })).toBeVisible();
+        await expect(header.getByRole('tab', { name: 'Resumes' })).toHaveCount(0);
     });
 });
 

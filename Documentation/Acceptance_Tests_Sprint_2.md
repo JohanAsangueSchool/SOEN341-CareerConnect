@@ -81,6 +81,10 @@ E2E_RECRUITER_PASSWORD=
 The Worker's first and last name are needed because AC-01.1, AC-01.3 and
 AC-01.4 assert on the displayed name and initials.
 
+The team's shared Worker and Recruiter logins (posted in the #testing channel)
+can be used for these. The automated suite also loads `App/.env`, so the
+`E2E_*` values can sit in that file alongside the Supabase keys.
+
 ---
 
 ## 4. Foundation — Authentication & Access Control
@@ -375,7 +379,7 @@ management, and display applications received for a posting.
 |---|---|---|---|
 | AC-A.1 – AC-A.8 | Implemented | `App/src/app/(auth)/signup/page.tsx`, `App/src/utils/forms/auth.ts` | `App/tests/auth.spec.ts` |
 | AC-A.9 – AC-A.10 | Implemented | `App/src/app/(auth)/signin/page.tsx`, `App/src/app/(auth)/signin/actions.ts` | `App/tests/auth.spec.ts` |
-| AC-A.11 | Implemented | `App/src/app/(main)/layout.tsx` | `App/tests/auth.spec.ts` |
+| AC-A.11 | Implemented | `App/src/app/(main)/layout.tsx` | `App/tests/signout.spec.ts` |
 | AC-G.1 – AC-G.4 | Implemented | `App/src/lib/supabase/proxy.ts`, `App/src/proxy.ts` | `App/tests/guards.spec.ts` |
 | AC-G.5 | Implemented | `App/src/app/(main)/layout.tsx` | `App/tests/guards.spec.ts` |
 | AC-01.1 – AC-01.3 | Implemented | `App/src/app/(main)/account/page.tsx` | `App/tests/account.spec.ts` |
@@ -453,3 +457,19 @@ The `acceptance-tests` job needs these repository secrets, added under
 `E2E_WORKER_EMAIL`, `E2E_WORKER_PASSWORD`, `E2E_WORKER_FIRST_NAME`,
 `E2E_WORKER_LAST_NAME`, `E2E_RECRUITER_EMAIL`, `E2E_RECRUITER_PASSWORD`.
 Until they are configured that job fails while `build` still passes.
+
+## 9. Known issues found by the suite
+
+Last run (production build, excluding `@writes`): **30 of 34 pass**. The
+failures below are defects in the application, not in the tests, so the tests
+are left asserting the intended behaviour.
+
+| Criteria | Defect | Where |
+|---|---|---|
+| AC-02.5, AC-02.7, AC-02.12, AC-02.13 | Opening an existing resume shows an empty *Create Resume* form instead of the stored resume. `/resumes/edit` is prerendered as a static page, so `use(searchParams)` never receives `id`. Reading it with `useSearchParams()` should fix it. | `App/src/app/(main)/resumes/edit/page.tsx` |
+| AC-A.1, AC-A.2 | Registration fails with a server error. The `handle_new_user` trigger does not copy `phone` or `postal_code` from the sign-up data, and the default for `profiles.phone` violates the `phone_format_dash` check. | Supabase: `public.handle_new_user`, `public.profiles` |
+| — | The last-name validation message reads "Last name must be minimum 2 requicharactersred." | `App/src/utils/forms/auth.ts` |
+
+Supabase's `signOut()` ends every session of the account, so AC-A.11 signs the
+Worker back in afterwards to keep the shared session usable by the other specs.
+

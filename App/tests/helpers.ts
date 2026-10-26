@@ -56,7 +56,9 @@ export async function signIn(page: Page, email: string, password: string) {
     await page.getByLabel('Email').fill(email);
     await page.getByLabel('Password', { exact: true }).fill(password);
     await page.getByRole('button', { name: 'Login' }).click();
-    await expect(page).toHaveURL('/');
+    // The first sign-in of a run also waits for `next dev` to compile the home
+    // page, which can take longer than the default five seconds.
+    await expect(page).toHaveURL('/', { timeout: 20_000 });
 }
 
 /**
@@ -83,9 +85,14 @@ export function resumeSection(page: Page, legend: string): Locator {
     return page.locator('fieldset').filter({ has: page.getByText(legend, { exact: true }) });
 }
 
-/** A resume card on the list page, located by its title. */
+/**
+ * A resume card on the list page, located by its title: the closest element
+ * around the title heading that also holds that resume's Edit link.
+ */
 export function resumeCard(page: Page, title: string): Locator {
-    return page.locator('[data-scope="card"][data-part="root"]').filter({ hasText: title }).first();
+    return page
+        .getByRole('heading', { name: title, exact: true })
+        .locator('xpath=ancestor::div[.//a[contains(@href, "/resumes/edit?id=")]][1]');
 }
 
 /** A title that is unique per run and identifiable as test data. */

@@ -18,7 +18,8 @@ export default defineConfig({
 
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
-    reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
+    // `npx playwright show-report` opens the HTML report of the last run.
+    reporter: [['list'], ['html', { open: 'never' }]],
 
     use: {
         baseURL,

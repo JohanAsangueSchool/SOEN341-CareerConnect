@@ -1,9 +1,9 @@
 import { type Page, expect, test } from '@playwright/test';
 
-import { WORKER_STATE, signOut, worker } from './helpers';
+import { worker } from './helpers';
 
 /**
- * Foundation — Authentication (AC-A.1 … AC-A.11)
+ * Foundation — Authentication (AC-A.1 … AC-A.10)
  * See Documentation/Acceptance_Tests_Sprint_2.md section 4.
  */
 
@@ -38,8 +38,10 @@ async function fillSignupForm(page: Page, fields: SignupFields) {
     await page.goto('/signup');
     await page.getByLabel('First Name').fill(fields.firstName);
     await page.getByLabel('Last Name').fill(fields.lastName);
-    // The account-type control is a RadioCard whose input is visually hidden.
-    await page.getByRole('radio', { name: fields.accountType }).check({ force: true });
+    // The account-type control is a RadioCard whose input is visually hidden, so
+    // click the card's text the way a user would rather than the input itself.
+    await page.getByText(fields.accountType, { exact: true }).click();
+    await expect(page.getByRole('radio', { name: fields.accountType })).toBeChecked();
     await page.getByLabel('Email').fill(fields.email);
     await page.getByLabel('Phone').fill(fields.phone);
     await page.getByLabel('Postal Code').fill(fields.postalCode);
@@ -144,15 +146,4 @@ test.describe('Sign in', () => {
     });
 });
 
-test.describe('Sign out', () => {
-    test.use({ storageState: WORKER_STATE });
-
-    test('AC-A.11 a signed-in user can sign out from the avatar menu', async ({ page }) => {
-        await page.goto('/');
-        await signOut(page);
-
-        // The session is gone, so a protected route bounces back to sign-in.
-        await page.goto('/');
-        await expect(page).toHaveURL('/signin');
-    });
-});
+// AC-A.11 (sign out) is in signout.spec.ts, which restores the shared session.

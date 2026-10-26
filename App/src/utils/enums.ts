@@ -23,3 +23,11 @@ export const JobTypeEnum = z.enum(JobTypeEnumValues, {
 });
 
 export type JobTypeEnumType = z.infer<typeof JobTypeEnum>;
+
+export const JobStatusEnumValues = ['Draft', 'Open', 'Closed'];
+
+export const JobStatusEnum = z.enum(JobStatusEnumValues, {
+    error: () => 'Invalid job status.',
+});
+
+export type JobStatusEnumType = z.infer<typeof JobStatusEnum>;

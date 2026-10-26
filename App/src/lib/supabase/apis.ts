@@ -77,9 +77,36 @@ export async function getJob(client: SupabaseClient, id: string) {
     const { data, error, status } = await client
         .from('jobs')
         .select(
-            `id, title, company, description, location, category, job_type, salary_min, salary_max, status, created_at`,
+            `id, title, company, description, location, category, job_type, salary_min, salary_max, status, recruiter_id, created_at`,
         )
         .eq('id', id)
+        .single();
+
+    return { data, error, status };
+}
+
+export async function getRecruiterJobs(client: SupabaseClient) {
+    const claims = await client.auth.getClaims();
+    const { data, error, status } = await client
+        .from('jobs')
+        .select(
+            `id, title, company, description, location, category, job_type, salary_min, salary_max, status, created_at`,
+        )
+        .eq('recruiter_id', claims?.data?.claims.sub)
+        .order('created_at', { ascending: false });
+
+    return { data, error, status };
+}
+
+export async function getRecruiterJob(client: SupabaseClient, id: string) {
+    const claims = await client.auth.getClaims();
+    const { data, error, status } = await client
+        .from('jobs')
+        .select(
+            `title, company, description, location, category, job_type, salary_min, salary_max, status`,
+        )
+        .eq('id', id)
+        .eq('recruiter_id', claims?.data?.claims.sub)
         .single();
 
     return { data, error, status };

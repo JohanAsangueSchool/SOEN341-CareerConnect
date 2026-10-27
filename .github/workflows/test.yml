@@ -47,6 +47,12 @@ jobs:
     acceptance-tests:
         name: Acceptance tests
         runs-on: ubuntu-latest
+        # Every run shares the same Supabase test accounts, and signing out ends
+        # the account's sessions everywhere, so runs must not overlap. Runs wait
+        # for each other instead of being cancelled.
+        concurrency:
+            group: acceptance-tests
+            cancel-in-progress: false
         steps:
             - uses: actions/checkout@v4
 

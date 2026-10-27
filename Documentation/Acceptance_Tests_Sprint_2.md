@@ -5,13 +5,17 @@ Automated tests live in `App/tests/` (Playwright) and run on GitHub on every pus
 
 **Status:** **Pass** = automated and passing · **Manual** = checked by hand · **Untested** = built, no test yet · **Not met** = built but behaves differently · **Not built**
 
+**Summary (60 criteria):** 50 Pass · 1 Manual · 5 Not met · 4 Not built. Not met: AC-A.1, AC-A.2 (sign-up), AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: AC-01.6, AC-02.16 – AC-02.18 (file upload and resume delete).
+
+**Latest full run (2026-10-26):** 54 passed, including 3 expected failures (AC-A.1, AC-A.2, AC-05.1).
+
 ## Running the tests
 
 ```bash
 cd App
 npm install
 npx playwright install chromium
-npm test -- --grep-invert @writes
+npm test
 npx playwright show-report
 ```
 
@@ -23,8 +27,8 @@ npx playwright show-report
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-A.1 | A visitor can register as a Worker | Fails (sign-up bug) | `auth.spec.ts` |
-| AC-A.2 | A visitor can register as a Recruiter | Fails (sign-up bug) | `auth.spec.ts` |
+| AC-A.1 | A visitor can register as a Worker | Not met | `auth.spec.ts` (expected failure) |
+| AC-A.2 | A visitor can register as a Recruiter | Not met | `auth.spec.ts` (expected failure) |
 | AC-A.3 | First name under 2 characters is rejected | Pass | `auth.spec.ts` |
 | AC-A.4 | Malformed email is rejected | Pass | `auth.spec.ts` |
 | AC-A.5 | Phone not in `XXX-XXX-XXXX` format is rejected | Pass | `auth.spec.ts` |
@@ -48,7 +52,7 @@ npx playwright show-report
 | AC-01.2 | Account page shows the account type | Pass | `account.spec.ts` |
 | AC-01.3 | Avatar shows initials when there is no picture | Pass | `account.spec.ts` |
 | AC-01.4 | Avatar menu shows the full name | Pass | `account.spec.ts` |
-| AC-01.5 | User can edit the profile and changes are saved | Untested | — |
+| AC-01.5 | User can edit the profile and changes are saved | Pass | `account.spec.ts` |
 | AC-01.6 | User can upload or change the avatar picture | Not built | — |
 
 ## US-02 — Resume management
@@ -107,26 +111,29 @@ npx playwright show-report
 |---|---|---|---|
 | AC-06.1 | Worker sees every application and the job it was for | Pass | `applications.spec.ts` |
 | AC-06.2 | Status is Applied, Under Review, Interview, Offered or Rejected | Pass | `applications.spec.ts` |
-| AC-06.3 | Status changed by a recruiter shows for the Worker | Untested | — |
+| AC-06.3 | Status changed by a recruiter shows for the Worker | Pass | `recruiter.spec.ts` |
 
 ## US-08 — Recruiter postings
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-08.1 | Recruiter can create and post a job, and it appears in the listing | Untested | — |
-| AC-08.2 | Posting with a required field empty is rejected | Untested | — |
-| AC-08.3 | Recruiter can edit their own posting | Untested | — |
+| AC-08.1 | Recruiter can create and post a job, and it appears in the listing | Pass | `recruiter.spec.ts` |
+| AC-08.2 | Posting with a required field empty is rejected | Pass | `recruiter.spec.ts` |
+| AC-08.3 | Recruiter can edit their own posting | Pass | `recruiter.spec.ts` |
 | AC-08.4 | Recruiter sees applications received, with each applicant's resume | Not met (no resume attached) | — |
-| AC-08.5 | Worker cannot open the posting editor | Untested | — |
+| AC-08.5 | Worker cannot open the posting editor | Pass | `recruiter.spec.ts` |
 
 ## Open issues
 
-- **Sign-up fails** (AC-A.1, AC-A.2): the Supabase `handle_new_user` trigger does not copy `phone` and `postal_code`, and the `profiles.phone` default fails its format check. The two tests are tagged `@writes` and skipped in CI.
+- **Sign-up fails** (AC-A.1, AC-A.2): the Supabase `handle_new_user` trigger does not copy `phone` and `postal_code`, and the `profiles.phone` default fails its format check. Both tests are expected failures.
 - **No resume when applying** (AC-05.1, AC-05.4, AC-08.4): *Apply Now* does not ask for a resume or check that the Worker has one.
+- **Drafts cannot be saved**: the job form offers *Draft*, but the database only allows `Open` and `Closed` (`jobs_status_check`), so saving a draft fails with "Failed to create job posting."
 - **No file upload** (AC-01.6, AC-02.16, AC-02.17) and **no resume delete** (AC-02.18).
 
 ## Notes
 
 - The apply tests intercept the submit request, so they don't write to Supabase.
-- AC-05.1 is an expected failure (`test.fail()`): it turns red once the gap is fixed, as a reminder to remove the marker.
+- AC-A.1, AC-A.2 and AC-05.1 are expected failures (`test.fail()`): they turn red once the gap is fixed, as a reminder to remove the marker. Once sign-up works, each run of AC-A.1 and AC-A.2 creates a real user until the marker is removed.
 - Resume tests create resumes titled `[E2E] …` on the shared Worker account; clear them in Supabase from time to time.
+- The test accounts are shared. AC-A.11 signs out with the "local" scope so it ends only its own session; logging out of a test account manually in the app ends every session of that account and can fail a CI run in progress. CI runs the acceptance tests one at a time for the same reason.
+- Recruiter tests create postings titled `[E2E] Posting …` and close them at the end, so Workers never see them. The profile and status tests put the original values back.

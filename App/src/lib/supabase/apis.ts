@@ -112,13 +112,8 @@ export async function getRecruiterJob(client: SupabaseClient, id: string) {
     return { data, error, status };
 }
 
-
-export async function applyToJob(
-    client: SupabaseClient,
-    jobId: string,
-) {
-    const { data: claimsData, error: claimsError } =
-        await client.auth.getClaims();
+export async function applyToJob(client: SupabaseClient, jobId: string) {
+    const { data: claimsData, error: claimsError } = await client.auth.getClaims();
 
     const userId = claimsData?.claims?.sub;
 
@@ -142,11 +137,8 @@ export async function applyToJob(
     return { data, error, status };
 }
 
-export async function getUserApplications(
-    client: SupabaseClient,
-) {
-    const { data: claimsData, error: claimsError } =
-        await client.auth.getClaims();
+export async function getUserApplications(client: SupabaseClient) {
+    const { data: claimsData, error: claimsError } = await client.auth.getClaims();
 
     const userId = claimsData?.claims?.sub;
 
@@ -160,7 +152,8 @@ export async function getUserApplications(
 
     const { data, error, status } = await client
         .from('applications')
-        .select(`
+        .select(
+            `
             id,
             job_id,
             status,
@@ -171,20 +164,16 @@ export async function getUserApplications(
                 location,
                 job_type
             )
-        `)
+        `,
+        )
         .eq('user_id', userId)
         .order('applied_at', { ascending: false });
 
     return { data, error, status };
 }
 
-
-export async function hasUserApplied(
-    client: SupabaseClient,
-    jobId: string,
-) {
-    const { data: claimsData, error: claimsError } =
-        await client.auth.getClaims();
+export async function hasUserApplied(client: SupabaseClient, jobId: string) {
+    const { data: claimsData, error: claimsError } = await client.auth.getClaims();
 
     const userId = claimsData?.claims?.sub;
 
@@ -205,6 +194,51 @@ export async function hasUserApplied(
 
     return {
         data: !!data,
+        error,
+        status,
+    };
+}
+
+export type RecruiterApplicationFilters = {
+    jobId?: string;
+    status?: string;
+    sort?: 'newest' | 'oldest';
+};
+
+// Applications submitted to the current recruiter's job postings, with the applicant's profile
+export async function getRecruiterApplications(
+    client: SupabaseClient,
+    filters: RecruiterApplicationFilters = {},
+) {
+    const claims = await client.auth.getClaims();
+
+    // The inner join drops applications whose job belongs to another recruiter
+    let query = client
+        .from('applications')
+        .select(`id, job_id, user_id, status, applied_at, jobs!inner (title, company)`)
+        .eq('jobs.recruiter_id', claims?.data?.claims.sub)
+        .order('applied_at', { ascending: filters.sort === 'oldest' });
+
+    if (filters.jobId) query = query.eq('job_id', filters.jobId);
+    if (filters.status) query = query.eq('status', filters.status);
+
+    const { data, error, status } = await query;
+
+    if (error || !data || data.length === 0) return { data, error, status };
+
+    const applicantIds = [...new Set(data.map((application) => application.user_id))];
+    const { data: profiles } = await client
+        .from('profiles')
+        .select(`id, first_name, last_name, email, phone`)
+        .in('id', applicantIds);
+
+    const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
+
+    return {
+        data: data.map((application) => ({
+            ...application,
+            applicant: profilesById.get(application.user_id) ?? null,
+        })),
         error,
         status,
     };

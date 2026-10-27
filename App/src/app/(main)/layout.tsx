@@ -1,15 +1,16 @@
 'use client';
 
+import { Avatar, Link, Menu, Portal, Spinner, Tabs } from '@chakra-ui/react';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { FaBriefcase, FaClipboardCheck, FaFile, FaHouse } from 'react-icons/fa6';
+
 import { toaster } from '@/components/ui/toaster';
 import { UserProfileProvider, UserProfileType } from '@/contexts/user_profile';
 import { getUserProfile } from '@/lib/supabase/apis';
 import { createClientSupabase } from '@/lib/supabase/client';
 import { validRequestStatus } from '@/utils/function';
-import { Avatar, Link, Menu, Portal, Spinner, Tabs } from '@chakra-ui/react';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { FaFile, FaHouse, FaBriefcase, FaClipboardCheck } from 'react-icons/fa6';
 
 export default function MainLayout({ children }: LayoutProps<'/'>) {
     const router = useRouter();
@@ -110,6 +111,15 @@ function MainLayoutHeader({
                                 </Link>
                             </Tabs.Trigger>
                         </>
+                    )}
+
+                    {userProfile.account_type === 'Recruiter' && (
+                        <Tabs.Trigger value='/applications' asChild>
+                            <Link unstyled href='/applications'>
+                                <FaClipboardCheck />
+                                Applications
+                            </Link>
+                        </Tabs.Trigger>
                     )}
                 </Tabs.List>
             </Tabs.Root>

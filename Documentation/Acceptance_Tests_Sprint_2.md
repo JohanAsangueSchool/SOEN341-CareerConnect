@@ -135,4 +135,5 @@ npx playwright show-report
 - The apply tests intercept the submit request, so they don't write to Supabase.
 - AC-A.1, AC-A.2 and AC-05.1 are expected failures (`test.fail()`): they turn red once the gap is fixed, as a reminder to remove the marker. Once sign-up works, each run of AC-A.1 and AC-A.2 creates a real user until the marker is removed.
 - Resume tests create resumes titled `[E2E] …` on the shared Worker account; clear them in Supabase from time to time.
+- The test accounts are shared. AC-A.11 signs out with the "local" scope so it ends only its own session; logging out of a test account manually in the app ends every session of that account and can fail a CI run in progress. CI runs the acceptance tests one at a time for the same reason.
 - Recruiter tests create postings titled `[E2E] Posting …` and close them at the end, so Workers never see them. The profile and status tests put the original values back.

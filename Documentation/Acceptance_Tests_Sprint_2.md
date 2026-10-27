@@ -48,7 +48,7 @@ npx playwright show-report
 | AC-01.2 | Account page shows the account type | Pass | `account.spec.ts` |
 | AC-01.3 | Avatar shows initials when there is no picture | Pass | `account.spec.ts` |
 | AC-01.4 | Avatar menu shows the full name | Pass | `account.spec.ts` |
-| AC-01.5 | User can edit the profile and changes are saved | Untested | — |
+| AC-01.5 | User can edit the profile and changes are saved | Pass | `account.spec.ts` |
 | AC-01.6 | User can upload or change the avatar picture | Not built | — |
 
 ## US-02 — Resume management
@@ -107,22 +107,23 @@ npx playwright show-report
 |---|---|---|---|
 | AC-06.1 | Worker sees every application and the job it was for | Pass | `applications.spec.ts` |
 | AC-06.2 | Status is Applied, Under Review, Interview, Offered or Rejected | Pass | `applications.spec.ts` |
-| AC-06.3 | Status changed by a recruiter shows for the Worker | Untested | — |
+| AC-06.3 | Status changed by a recruiter shows for the Worker | Pass | `recruiter.spec.ts` |
 
 ## US-08 — Recruiter postings
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-08.1 | Recruiter can create and post a job, and it appears in the listing | Untested | — |
-| AC-08.2 | Posting with a required field empty is rejected | Untested | — |
-| AC-08.3 | Recruiter can edit their own posting | Untested | — |
+| AC-08.1 | Recruiter can create and post a job, and it appears in the listing | Pass | `recruiter.spec.ts` |
+| AC-08.2 | Posting with a required field empty is rejected | Pass | `recruiter.spec.ts` |
+| AC-08.3 | Recruiter can edit their own posting | Pass | `recruiter.spec.ts` |
 | AC-08.4 | Recruiter sees applications received, with each applicant's resume | Not met (no resume attached) | — |
-| AC-08.5 | Worker cannot open the posting editor | Untested | — |
+| AC-08.5 | Worker cannot open the posting editor | Pass | `recruiter.spec.ts` |
 
 ## Open issues
 
 - **Sign-up fails** (AC-A.1, AC-A.2): the Supabase `handle_new_user` trigger does not copy `phone` and `postal_code`, and the `profiles.phone` default fails its format check. The two tests are tagged `@writes` and skipped in CI.
 - **No resume when applying** (AC-05.1, AC-05.4, AC-08.4): *Apply Now* does not ask for a resume or check that the Worker has one.
+- **Drafts cannot be saved**: the job form offers *Draft*, but the database only allows `Open` and `Closed` (`jobs_status_check`), so saving a draft fails with "Failed to create job posting."
 - **No file upload** (AC-01.6, AC-02.16, AC-02.17) and **no resume delete** (AC-02.18).
 
 ## Notes
@@ -130,3 +131,4 @@ npx playwright show-report
 - The apply tests intercept the submit request, so they don't write to Supabase.
 - AC-05.1 is an expected failure (`test.fail()`): it turns red once the gap is fixed, as a reminder to remove the marker.
 - Resume tests create resumes titled `[E2E] …` on the shared Worker account; clear them in Supabase from time to time.
+- Recruiter tests create postings titled `[E2E] Posting …` and close them at the end, so Workers never see them. The profile and status tests put the original values back.

@@ -138,11 +138,6 @@ test('AC-06.1 the Worker sees each application with the posting it was for', asy
 });
 
 test('AC-06.2 each application shows a status from the agreed list', async ({ page }) => {
-    // Not met: the app uses Pending / Reviewed / Accepted / Rejected, while the
-    // story uses Applied / Under Review / Interview / Offered / Rejected.
-    // Remove test.fail() once the statuses match.
-    test.fail();
-
     await page.goto('/applications');
 
     const badges = page.getByText('Application status').locator('xpath=following-sibling::*[1]');

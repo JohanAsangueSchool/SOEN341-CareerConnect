@@ -331,7 +331,7 @@ confirmation of successful application submission.
 |---|---|
 | **Priority** | High |
 | **Story Points** | 5 |
-| **Status** | **Partial** — list built; statuses differ; no recruiter update |
+| **Status** | **Partial** — list and statuses built; no recruiter update |
 
 **Description (scenario):** As a job seeker, I want to track the status of my
 applications so that I know whether the status is applied, under review,
@@ -344,14 +344,14 @@ interview, offered, or rejected.
 | ID | Criterion | Status |
 |---|---|---|
 | AC-06.1 | A Worker sees a list of every application they have submitted, each identifying the posting applied to. | Implemented |
-| AC-06.2 | Each application displays its current status as one of: applied, under review, interview, offered, rejected. | **Not met** |
+| AC-06.2 | Each application displays its current status as one of: applied, under review, interview, offered, rejected. | Implemented |
 | AC-06.3 | When a recruiter changes an application's status, the Worker sees the updated status on their next visit to the tracking page. | Not built |
 
-> **Gap against the story.** The application statuses in the app are
-> *Pending, Reviewed, Accepted, Rejected*. The story and AC-06.2 use *Applied,
-> Under Review, Interview, Offered, Rejected*. AC-06.2 is automated as an
-> expected failure until the two agree. AC-06.3 needs the recruiter screens
-> from US-08.
+> **Note.** The stored application statuses were changed to the story's list
+> (*Applied, Under Review, Interview, Offered, Rejected*), so AC-06.2 is met.
+> The type and badge colours in `applications/page.tsx` still list the old
+> names (*Pending, Reviewed, Accepted*), so new statuses show in grey until
+> they are updated. AC-06.3 needs the recruiter screens from US-08.
 
 > **Note.** The Sprint 1 user story listed the statuses as "submitted, under
 > review, rejected, or accepted". Sprint 2 revised them to "applied, under
@@ -410,7 +410,7 @@ management, and display applications received for a posting.
 | AC-05.1 | Not met | `App/src/app/(main)/jobs/[id]/page.tsx` | `App/tests/applications.spec.ts` (expected failure) |
 | AC-05.4 | Not met | `App/src/app/(main)/jobs/[id]/page.tsx` | Manual |
 | AC-06.1 | Implemented | `App/src/app/(main)/applications/page.tsx` | `App/tests/applications.spec.ts` |
-| AC-06.2 | Not met | `App/src/app/(main)/applications/page.tsx` | `App/tests/applications.spec.ts` (expected failure) |
+| AC-06.2 | Implemented | `App/src/app/(main)/applications/page.tsx` | `App/tests/applications.spec.ts` |
 | AC-06.3 | Not built | — | — |
 | AC-08.1 – AC-08.5 | Not built | — | — |
 
@@ -424,15 +424,15 @@ management, and display applications received for a posting.
 | US-03 — Job search | 5 | 5 | 0 | 0 |
 | US-16 — Job details | 3 | 3 | 0 | 0 |
 | US-05 — Application submission | 4 | 2 | 2 | 0 |
-| US-06 — Application tracking | 3 | 1 | 1 | 1 |
+| US-06 — Application tracking | 3 | 2 | 0 | 1 |
 | US-08 — Recruiter postings | 5 | 0 | 0 | 5 |
-| **Total** | **60** | **46** | **3** | **11** |
+| **Total** | **60** | **47** | **2** | **11** |
 
 **Sprint 2 completion status.** Because a story is not complete until its
 acceptance tests pass, **US-03 and US-16 are complete**. The others are blocked
 on a capability named in their own story text: profile editing (US-01), file
-upload (US-02), choosing a resume when applying (US-05), the agreed status list
-(US-06), and the recruiter screens (US-08).
+upload (US-02), choosing a resume when applying (US-05), a recruiter updating
+a status (US-06), and the recruiter screens (US-08).
 
 ## 8. Running the automated tests
 
@@ -448,10 +448,10 @@ The suite requires `App/.env` and the six `E2E_*` account variables described in
 section 3. Criteria marked `Not built` have no automated test and are excluded
 from the suite.
 
-**45 of the 46 implemented criteria are automated.** AC-02.3 is manual, for the
-reason given in section 5. Two `Not met` criteria, AC-05.1 and AC-06.2, are
-automated as expected failures (`test.fail()`): they pass while the gap exists
-and fail once it is closed, as a reminder to remove the marker.
+**46 of the 47 implemented criteria are automated.** AC-02.3 is manual, for the
+reason given in section 5. The `Not met` criterion AC-05.1 is automated as an
+expected failure (`test.fail()`): it passes while the gap exists and fails once
+it is closed, as a reminder to remove the marker.
 
 The application tests intercept the request that submits an application, so
 they exercise the page without writing to Supabase; a real application would
@@ -496,7 +496,7 @@ unchanged while the application was fixed.
 | AC-A.1, AC-A.2 | Registration fails with a server error. The `handle_new_user` trigger does not copy `phone` or `postal_code` from the sign-up data, and the default for `profiles.phone` violates the `phone_format_dash` check. | Supabase: `public.handle_new_user`, `public.profiles` | Open |
 | — | The last-name validation message read "Last name must be minimum 2 requicharactersred." | `App/src/utils/forms/auth.ts` | Fixed in #35 |
 | AC-05.1, AC-05.4 | *Apply Now* submits without asking for a resume or checking that the Worker has one. | `App/src/app/(main)/jobs/[id]/page.tsx` | Open |
-| AC-06.2 | Application statuses are *Pending, Reviewed, Accepted, Rejected* instead of *Applied, Under Review, Interview, Offered, Rejected*. | `App/src/app/(main)/applications/page.tsx`, `applications.status` in Supabase | Open |
+| AC-06.2 | Application statuses were *Pending, Reviewed, Accepted, Rejected* instead of *Applied, Under Review, Interview, Offered, Rejected*. | `applications.status` in Supabase | Fixed in the database; the page's badge colours still use the old names |
 
 Supabase's `signOut()` ends every session of the account, so AC-A.11 signs the
 Worker back in afterwards to keep the shared session usable by the other specs.

@@ -32,8 +32,10 @@ test('AC-01.2 the account page shows the account type', async ({ page }) => {
 test('AC-01.3 the avatar falls back to the user initials', async ({ page }) => {
     await page.goto('/account');
 
+    // Scoped to the page's own <main>: the header avatar shows the same
+    // initials on every page and would otherwise satisfy the check.
     const initials = `${worker.firstName[0]}${worker.lastName[0]}`;
-    await expect(page.getByText(initials, { exact: true }).first()).toBeVisible();
+    await expect(page.locator('main main').getByText(initials, { exact: true })).toBeVisible();
 });
 
 test('AC-01.4 the avatar menu shows the full name', async ({ page }) => {

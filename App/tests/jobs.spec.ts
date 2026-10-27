@@ -43,6 +43,11 @@ test('AC-03.1 the listing shows each posting with its title, company and locatio
 }) => {
     await openListing(page);
 
+    // Every location a posting can have, from the Location filter.
+    const locationOptions = page.getByRole('combobox', { name: 'Location' }).locator('option');
+    await expect(locationOptions.nth(1)).toBeAttached();
+    const locations = (await locationOptions.allInnerTexts()).slice(1);
+
     const cards = jobCards(page);
     const count = await cards.count();
     expect(count).toBeGreaterThan(0);
@@ -51,7 +56,10 @@ test('AC-03.1 the listing shows each posting with its title, company and locatio
         const card = cards.nth(i);
         await expect(card.getByRole('heading')).not.toBeEmpty();
         // The company sits in the "<company> · Posted <date>" line under the title.
-        await expect(card).toContainText('· Posted');
+        const companyLine = await card.getByText('· Posted').innerText();
+        expect(companyLine.split(' · ')[0].trim()).not.toBe('');
+        const text = await card.innerText();
+        expect(locations.some((location) => text.includes(location))).toBe(true);
     }
 });
 
@@ -134,10 +142,14 @@ test('AC-16.2 the detail view shows the description, company, location, type and
     const locations = await locationOptions.allInnerTexts();
     const cardText = await card.innerText();
     const location = locations.find((option) => cardText.includes(option))!;
+    const description = (await card.locator('.chakra-card__description').textContent())!.trim();
+    expect(description).not.toBe('');
 
     await card.getByRole('link', { name: 'View' }).click();
 
     await expect(page.getByRole('heading', { name: 'Job Description' })).toBeVisible();
+    // The card clamps the description to three lines; the detail view shows all of it.
+    await expect(page.locator('main main')).toContainText(description);
     await expect(page.getByText(company, { exact: true })).toBeVisible();
     await expect(page.getByText(location, { exact: true })).toBeVisible();
     await expect(page.locator('.chakra-badge', { hasText: jobType })).toBeVisible();

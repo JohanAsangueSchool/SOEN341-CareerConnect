@@ -10,7 +10,7 @@ import { WORKER_STATE, createResume, resumeCard, resumeSection, uniqueTitle } fr
  * cannot be restored once this suite has run.
  *
  * AC-02.16 … AC-02.18 cover file upload, replacement and deletion, none of
- * which are implemented. See Documentation/Acceptance_Tests_Sprint_2.md § 5.
+ * which are implemented. See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
 test.use({ storageState: WORKER_STATE });

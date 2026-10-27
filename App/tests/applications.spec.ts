@@ -14,7 +14,7 @@ import { WORKER_STATE } from './helpers';
  *
  * AC-05.4 (no resumes) needs an account with no resumes and is not automated.
  * AC-06.3 (status changed by a recruiter) has no recruiter screen yet.
- * See Documentation/Acceptance_Tests_Sprint_2.md § 5.
+ * See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
 test.use({ storageState: WORKER_STATE });

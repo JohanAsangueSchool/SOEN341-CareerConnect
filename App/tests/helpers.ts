@@ -15,7 +15,7 @@ export function requireEnv(name: string): string {
     if (!value) {
         throw new Error(
             `Missing environment variable ${name}. The acceptance suite needs the ` +
-                `Supabase keys and the two seeded test accounts — see section 3 of ` +
+                `Supabase keys and the two seeded test accounts — see "Running the tests" in ` +
                 `Documentation/Acceptance_Tests_Sprint_2.md.`,
         );
     }

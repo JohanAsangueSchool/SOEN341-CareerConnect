@@ -4,7 +4,7 @@ import { WORKER_STATE, signIn, signOut, worker } from './helpers';
 
 /**
  * Foundation — Sign out (AC-A.11)
- * See Documentation/Acceptance_Tests_Sprint_2.md section 4.
+ * See Documentation/Acceptance_Tests_Sprint_2.md.
  *
  * Supabase's signOut() ends every session of the account, including the one
  * stored by auth.setup.ts that the other specs reuse, so the Worker is signed

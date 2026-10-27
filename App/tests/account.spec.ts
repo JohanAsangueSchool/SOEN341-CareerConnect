@@ -6,7 +6,7 @@ import { WORKER_STATE, avatarMenu, worker } from './helpers';
  * US-01 — User Profile Management (AC-01.1 … AC-01.4)
  * AC-01.5 (edit and save a profile) and AC-01.6 (change the avatar) are not
  * implemented and so have no test here.
- * See Documentation/Acceptance_Tests_Sprint_2.md § 5.
+ * See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
 test.use({ storageState: WORKER_STATE });

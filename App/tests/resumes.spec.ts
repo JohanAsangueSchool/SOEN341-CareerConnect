@@ -164,16 +164,29 @@ test('AC-02.10 a project with an invalid link is rejected', async ({ page }) => 
 });
 
 test('AC-02.11 an entry can be removed', async ({ page }) => {
-    await page.goto('/resumes/edit');
-    await addRow(page, 'Skills');
-    await addRow(page, 'Skills');
+    const title = uniqueTitle('Remove');
 
+    await page.goto('/resumes/edit');
+    await titleField(page).fill(title);
+    await addRow(page, 'Skills');
+    await addRow(page, 'Skills');
+    await resumeSection(page, 'Skills').getByLabel('Name').nth(0).fill('Removed skill');
+    await resumeSection(page, 'Skills').getByLabel('Name').nth(1).fill('Kept skill');
+    await page.getByRole('button', { name: 'Create Resume' }).click();
+    await expect(page).toHaveURL('/resumes');
+
+    // Remove the first skill from the saved resume and save again.
+    await resumeCard(page, title).getByRole('link', { name: 'Edit' }).click();
     const skills = resumeSection(page, 'Skills');
     await expect(skills.getByLabel('Name')).toHaveCount(2);
-
     await skills.getByRole('button', { name: 'Remove' }).first().click();
+    await page.getByRole('button', { name: 'Save Changes' }).click();
+    await expect(page).toHaveURL('/resumes');
 
-    await expect(skills.getByLabel('Name')).toHaveCount(1);
+    // Reopen it: only the kept skill is stored.
+    await resumeCard(page, title).getByRole('link', { name: 'Edit' }).click();
+    await expect(resumeSection(page, 'Skills').getByLabel('Name')).toHaveCount(1);
+    await expect(resumeSection(page, 'Skills').getByLabel('Name')).toHaveValue('Kept skill');
 });
 
 test('AC-02.12 opening an existing resume pre-fills its fields', async ({ page }) => {

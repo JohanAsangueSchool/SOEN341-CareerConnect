@@ -15,3 +15,9 @@ export function formatSalary(min: number | null, max: number | null) {
     if (min !== null && max !== null) return `${format(min)}–${format(max)}${unit}`;
     return `${format((min ?? max)!)}${unit}`;
 }
+
+export const jobStatusColorPalette: Record<string, string> = {
+    Draft: 'gray',
+    Open: 'green',
+    Closed: 'red',
+};

@@ -10,17 +10,15 @@ import {
     FaDollarSign,
     FaLayerGroup,
     FaLocationDot,
+    FaPen,
 } from 'react-icons/fa6';
 
 import { toaster } from '@/components/ui/toaster';
-import {
-    applyToJob,
-    getJob,
-    hasUserApplied,
-} from '@/lib/supabase/apis';
+import { useUserProfile } from '@/contexts/user_profile';
+import { applyToJob, getJob, hasUserApplied } from '@/lib/supabase/apis';
 import { createClientSupabase } from '@/lib/supabase/client';
 import { validRequestStatus } from '@/utils/function';
-import { formatSalary, jobTypeColorPalette } from '@/utils/jobs';
+import { formatSalary, jobStatusColorPalette, jobTypeColorPalette } from '@/utils/jobs';
 
 type JobDetailType = {
     id: string;
@@ -33,15 +31,18 @@ type JobDetailType = {
     salary_min: number | null;
     salary_max: number | null;
     status: string;
+    recruiter_id: string | null;
     created_at: string;
 };
 
 export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs/[id]'>) {
     const router = useRouter();
     const { id } = use(params);
+    const isRecruiter = useUserProfile()?.account_type === 'Recruiter';
     const [job, setJob] = useState<JobDetailType>();
     const [applying, setApplying] = useState(false);
     const [hasApplied, setHasApplied] = useState(false);
+    const [isOwner, setIsOwner] = useState(false);
 
     // The listing passes its filters in the query string so Back restores the same results
     const query = new URLSearchParams(
@@ -79,7 +80,10 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                 closable: true,
             });
         } catch (error) {
-            console.error('Application error details:', JSON.stringify(error, Object.getOwnPropertyNames(error as object)));
+            console.error(
+                'Application error details:',
+                JSON.stringify(error, Object.getOwnPropertyNames(error as object)),
+            );
             toaster.create({
                 title: 'Application failed',
                 description: 'Could not submit your application. Please try again.',
@@ -107,6 +111,16 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
 
                 setJob(data);
 
+                // Recruiters can't apply, they can only edit the postings they own
+                if (isRecruiter) {
+                    const claims = await client.auth.getClaims();
+
+                    if (ignore) return;
+
+                    setIsOwner(data.recruiter_id === claims.data?.claims.sub);
+                    return;
+                }
+
                 const appliedResult = await hasUserApplied(client, id);
 
                 if (ignore) return;
@@ -133,8 +147,7 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
         return () => {
             ignore = true;
         };
-    }, [id, router, backHref]);
-
+    }, [id, router, backHref, isRecruiter]);
 
     return (
         <main className='m-12 flex w-full max-w-3xl flex-col gap-6 self-center'>
@@ -156,7 +169,10 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                             </Heading>
                             <HStack gap={2} flexShrink={0}>
                                 {job.status !== 'Open' && (
-                                    <Badge size='lg' colorPalette='red'>
+                                    <Badge
+                                        size='lg'
+                                        colorPalette={jobStatusColorPalette[job.status] ?? 'gray'}
+                                    >
                                         {job.status}
                                     </Badge>
                                 )}
@@ -199,14 +215,29 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                         </Text>
                     </Card.Body>
                     <Card.Footer borderTopWidth='1px' paddingTop={4}>
-                        <Button
-                            colorPalette='blue'
-                            onClick={handleApply}
-                            loading={applying}
-                            disabled={applying || hasApplied || job.status !== 'Open'}
-                        >
-                            {hasApplied ? 'Applied' : job.status !== 'Open' ? 'Applications closed' : 'Apply Now'}
-                        </Button>
+                        {isRecruiter ? (
+                            isOwner && (
+                                <Link href={`/jobs/edit?id=${job.id}`}>
+                                    <Button colorPalette='blue'>
+                                        <FaPen />
+                                        Edit Posting
+                                    </Button>
+                                </Link>
+                            )
+                        ) : (
+                            <Button
+                                colorPalette='blue'
+                                onClick={handleApply}
+                                loading={applying}
+                                disabled={applying || hasApplied || job.status !== 'Open'}
+                            >
+                                {hasApplied
+                                    ? 'Applied'
+                                    : job.status !== 'Open'
+                                      ? 'Applications closed'
+                                      : 'Apply Now'}
+                            </Button>
+                        )}
                     </Card.Footer>
                 </Card.Root>
             )}

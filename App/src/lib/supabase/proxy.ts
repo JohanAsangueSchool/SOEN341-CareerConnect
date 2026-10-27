@@ -1,5 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
-import { NextResponse, type NextRequest } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 export async function updateSession(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
@@ -50,6 +50,13 @@ export async function updateSession(request: NextRequest) {
 
     if (data?.account_type !== 'Worker' && ['/resumes'].some((e) => url.pathname.startsWith(e))) {
         return NextResponse.redirect(new URL('/', url));
+    }
+
+    if (
+        data?.account_type !== 'Recruiter' &&
+        ['/jobs/edit'].some((e) => url.pathname.startsWith(e))
+    ) {
+        return NextResponse.redirect(new URL('/jobs', url));
     }
 
     return supabaseResponse;

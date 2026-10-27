@@ -41,7 +41,7 @@ jobs:
               run: npm run build
 
     # The acceptance suite drives a real browser against a real Supabase
-    # project, so it needs the repository secrets listed in the README of
+    # project, so it needs the repository secrets listed in
     # Documentation/Acceptance_Tests_Sprint_2.md. Until those are configured
     # this job fails while `build` still passes.
     acceptance-tests:

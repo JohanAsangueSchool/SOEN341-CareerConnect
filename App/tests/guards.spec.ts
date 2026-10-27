@@ -5,7 +5,7 @@ import { RECRUITER_STATE, WORKER_STATE } from './helpers';
 /**
  * Foundation — Access control (AC-G.1 … AC-G.5)
  * Enforced by App/src/lib/supabase/proxy.ts, which gates routes on
- * profiles.account_type. See Documentation/Acceptance_Tests_Sprint_2.md § 4.
+ * profiles.account_type. See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
 test.describe('Signed-out visitors', () => {

@@ -8,7 +8,7 @@ import { WORKER_STATE } from './helpers';
  *
  * These read the job postings already in Supabase and assert on whatever the
  * listing returns, so they do not depend on particular postings existing.
- * See Documentation/Acceptance_Tests_Sprint_2.md § 5.
+ * See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
 test.use({ storageState: WORKER_STATE });

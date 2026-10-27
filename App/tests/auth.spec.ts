@@ -4,7 +4,7 @@ import { worker } from './helpers';
 
 /**
  * Foundation — Authentication (AC-A.1 … AC-A.10)
- * See Documentation/Acceptance_Tests_Sprint_2.md section 4.
+ * See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
 type SignupFields = {

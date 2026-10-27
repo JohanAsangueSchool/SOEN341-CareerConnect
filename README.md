@@ -1,6 +1,7 @@
 # CareerConnect
 
 CarreerConnect is a web platform made to help users in their job search. With it, users can manage their resumes, submit and track applications.
+[Deployment Link](https://soen-341-career-connect-d5vgjcc7e-concordia10.vercel.app)
 
 ## Problem
 

@@ -7,6 +7,8 @@ Automated tests live in `App/tests/` (Playwright) and run on GitHub on every pus
 
 **Summary (60 criteria):** 50 Pass · 1 Manual · 5 Not met · 4 Not built. Not met: AC-A.1, AC-A.2 (sign-up), AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: AC-01.6, AC-02.16 – AC-02.18 (file upload and resume delete).
 
+**Latest full run (2026-10-26):** 54 passed, including 3 expected failures (AC-A.1, AC-A.2, AC-05.1).
+
 ## Running the tests
 
 ```bash

@@ -91,9 +91,7 @@ jobs:
                   E2E_WORKER_LAST_NAME: ${{ secrets.E2E_WORKER_LAST_NAME }}
                   E2E_RECRUITER_EMAIL: ${{ secrets.E2E_RECRUITER_EMAIL }}
                   E2E_RECRUITER_PASSWORD: ${{ secrets.E2E_RECRUITER_PASSWORD }}
-              # The two registration criteria create real users, so they are
-              # excluded from CI runs against the shared project.
-              run: npm test -- --grep-invert @writes
+              run: npm test
 
             - name: Upload Playwright report
               if: ${{ !cancelled() }}

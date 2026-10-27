@@ -11,7 +11,7 @@ Automated tests live in `App/tests/` (Playwright) and run on GitHub on every pus
 cd App
 npm install
 npx playwright install chromium
-npm test -- --grep-invert @writes
+npm test
 npx playwright show-report
 ```
 
@@ -23,8 +23,8 @@ npx playwright show-report
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-A.1 | A visitor can register as a Worker | Fails (sign-up bug) | `auth.spec.ts` |
-| AC-A.2 | A visitor can register as a Recruiter | Fails (sign-up bug) | `auth.spec.ts` |
+| AC-A.1 | A visitor can register as a Worker | Not met | `auth.spec.ts` (expected failure) |
+| AC-A.2 | A visitor can register as a Recruiter | Not met | `auth.spec.ts` (expected failure) |
 | AC-A.3 | First name under 2 characters is rejected | Pass | `auth.spec.ts` |
 | AC-A.4 | Malformed email is rejected | Pass | `auth.spec.ts` |
 | AC-A.5 | Phone not in `XXX-XXX-XXXX` format is rejected | Pass | `auth.spec.ts` |
@@ -121,7 +121,7 @@ npx playwright show-report
 
 ## Open issues
 
-- **Sign-up fails** (AC-A.1, AC-A.2): the Supabase `handle_new_user` trigger does not copy `phone` and `postal_code`, and the `profiles.phone` default fails its format check. The two tests are tagged `@writes` and skipped in CI.
+- **Sign-up fails** (AC-A.1, AC-A.2): the Supabase `handle_new_user` trigger does not copy `phone` and `postal_code`, and the `profiles.phone` default fails its format check. Both tests are expected failures.
 - **No resume when applying** (AC-05.1, AC-05.4, AC-08.4): *Apply Now* does not ask for a resume or check that the Worker has one.
 - **Drafts cannot be saved**: the job form offers *Draft*, but the database only allows `Open` and `Closed` (`jobs_status_check`), so saving a draft fails with "Failed to create job posting."
 - **No file upload** (AC-01.6, AC-02.16, AC-02.17) and **no resume delete** (AC-02.18).
@@ -129,6 +129,6 @@ npx playwright show-report
 ## Notes
 
 - The apply tests intercept the submit request, so they don't write to Supabase.
-- AC-05.1 is an expected failure (`test.fail()`): it turns red once the gap is fixed, as a reminder to remove the marker.
+- AC-A.1, AC-A.2 and AC-05.1 are expected failures (`test.fail()`): they turn red once the gap is fixed, as a reminder to remove the marker. Once sign-up works, each run of AC-A.1 and AC-A.2 creates a real user until the marker is removed.
 - Resume tests create resumes titled `[E2E] …` on the shared Worker account; clear them in Supabase from time to time.
 - Recruiter tests create postings titled `[E2E] Posting …` and close them at the end, so Workers never see them. The profile and status tests put the original values back.

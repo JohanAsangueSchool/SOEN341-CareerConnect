@@ -247,3 +247,29 @@ export async function getRecruiterApplications(
         status,
     };
 }
+
+// RLS only returns messages for applications the current user applied to or recruits for
+export async function getApplicationMessages(client: SupabaseClient, applicationId: string) {
+    const { data, error, status } = await client
+        .from('application_messages')
+        .select(`id, application_id, sender_id, body, created_at`)
+        .eq('application_id', applicationId)
+        .order('created_at', { ascending: true });
+
+    return { data, error, status };
+}
+
+export async function sendApplicationMessage(
+    client: SupabaseClient,
+    applicationId: string,
+    body: string,
+) {
+    // sender_id defaults to auth.uid() in the database, and RLS checks the sender is a participant
+    const { data, error, status } = await client
+        .from('application_messages')
+        .insert({ application_id: applicationId, body: body.trim() })
+        .select(`id, application_id, sender_id, body, created_at`)
+        .single();
+
+    return { data, error, status };
+}

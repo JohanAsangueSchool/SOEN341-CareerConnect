@@ -28,6 +28,7 @@ import {
     FaXmark,
 } from 'react-icons/fa6';
 
+import ApplicationChatDialog from '@/components/application_chat';
 import ResumePreview, { ResumePreviewType } from '@/components/resume_preview';
 import { toaster } from '@/components/ui/toaster';
 import { useUserProfile } from '@/contexts/user_profile';
@@ -189,19 +190,31 @@ function WorkerApplications() {
                                     </Text>
                                 )}
 
-                                <div>
-                                    <Text fontSize='sm' mb={1} color='fg.muted'>
-                                        Application status
-                                    </Text>
-                                    <Badge
-                                        colorPalette={
-                                            applicationStatusColorPalette[application.status] ??
-                                            'gray'
+                                <HStack justify='space-between' align='end' wrap='wrap'>
+                                    <div>
+                                        <Text fontSize='sm' mb={1} color='fg.muted'>
+                                            Application status
+                                        </Text>
+                                        <Badge
+                                            colorPalette={
+                                                applicationStatusColorPalette[application.status] ??
+                                                'gray'
+                                            }
+                                        >
+                                            {application.status}
+                                        </Badge>
+                                    </div>
+
+                                    <ApplicationChatDialog
+                                        applicationId={application.id}
+                                        title={application.jobs?.title ?? 'Job application'}
+                                        counterpartName={
+                                            application.jobs?.company
+                                                ? `${application.jobs.company} recruiter`
+                                                : 'the recruiter'
                                         }
-                                    >
-                                        {application.status}
-                                    </Badge>
-                                </div>
+                                    />
+                                </HStack>
                             </Card.Body>
                         </Card.Root>
                     ))}
@@ -523,6 +536,16 @@ function RecruiterApplicationCard({
                             No resume attached
                         </Text>
                     )}
+
+                    <ApplicationChatDialog
+                        applicationId={application.id}
+                        title={application.jobs.title}
+                        counterpartName={
+                            applicant
+                                ? `${applicant.first_name} ${applicant.last_name}`
+                                : 'the applicant'
+                        }
+                    />
 
                     <Button asChild variant='outline' size='sm'>
                         <Link href={`/jobs/${application.job_id}`}>

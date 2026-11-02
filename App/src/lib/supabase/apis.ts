@@ -112,7 +112,7 @@ export async function getRecruiterJob(client: SupabaseClient, id: string) {
     return { data, error, status };
 }
 
-export async function applyToJob(client: SupabaseClient, jobId: string) {
+export async function applyToJob(client: SupabaseClient, jobId: string, resumeId: string) {
     const { data: claimsData, error: claimsError } = await client.auth.getClaims();
 
     const userId = claimsData?.claims?.sub;
@@ -125,13 +125,11 @@ export async function applyToJob(client: SupabaseClient, jobId: string) {
         };
     }
 
+    // A direct insert trips recursive RLS policies on applications, so the database
+    // function checks the job, account type and resume ownership and inserts itself
     const { data, error, status } = await client
-        .from('applications')
-        .insert({
-            job_id: jobId,
-            user_id: userId,
-        })
-        .select('id, job_id, user_id, status, applied_at')
+        .rpc('apply_to_job', { target_job_id: jobId, target_resume_id: resumeId })
+        .select('id, job_id, user_id, resume_id, status, applied_at')
         .single();
 
     return { data, error, status };
@@ -163,6 +161,9 @@ export async function getUserApplications(client: SupabaseClient) {
                 company,
                 location,
                 job_type
+            ),
+            resumes (
+                title
             )
         `,
         )
@@ -206,6 +207,7 @@ export type RecruiterApplicationFilters = {
 };
 
 // Applications submitted to the current recruiter's job postings, with the applicant's profile
+// and the resume they linked
 export async function getRecruiterApplications(
     client: SupabaseClient,
     filters: RecruiterApplicationFilters = {},
@@ -215,7 +217,9 @@ export async function getRecruiterApplications(
     // The inner join drops applications whose job belongs to another recruiter
     let query = client
         .from('applications')
-        .select(`id, job_id, user_id, status, applied_at, jobs!inner (title, company)`)
+        .select(
+            `id, job_id, user_id, status, applied_at, jobs!inner (title, company), resumes (title, summary, education, experience, skills, projects, updated_at)`,
+        )
         .eq('jobs.recruiter_id', claims?.data?.claims.sub)
         .order('applied_at', { ascending: filters.sort === 'oldest' });
 

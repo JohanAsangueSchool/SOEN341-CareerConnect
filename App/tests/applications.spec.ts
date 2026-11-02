@@ -10,16 +10,35 @@ import { WORKER_STATE } from './helpers';
  * Worker account, so a real application would use up a posting on every run.
  * The apply tests therefore intercept the insert in the browser: the page runs
  * its real flow and the test checks the request it sends, but nothing is
- * written to Supabase.
+ * written to Supabase. They also answer the resume list the apply dialog loads,
+ * so they do not depend on which resumes the shared Worker account has.
  *
- * AC-05.4 (no resumes) needs an account with no resumes and is not automated.
  * AC-06.3 (status changed by a recruiter) has no recruiter screen yet.
  * See Documentation/Acceptance_Tests_Sprint_2.md § 5.
  */
 
 test.use({ storageState: WORKER_STATE });
 
-const APPLY_REQUEST = '**/rest/v1/applications**';
+const APPLY_REQUEST = '**/rest/v1/rpc/apply_to_job**';
+const RESUMES_REQUEST = '**/rest/v1/resumes**';
+
+const E2E_RESUMES = [
+    { id: 'e2e-resume-1', title: '[E2E] Recent resume', status: 'Active' },
+    { id: 'e2e-resume-2', title: '[E2E] Older resume', status: 'Draft' },
+];
+
+/** Answers the resume list the apply dialog loads with `resumes`. */
+async function mockResumes(page: Page, resumes: object[]) {
+    await page.route(RESUMES_REQUEST, (route) =>
+        route.request().method() === 'GET'
+            ? route.fulfill({
+                  status: 200,
+                  contentType: 'application/json',
+                  body: JSON.stringify(resumes),
+              })
+            : route.fallback(),
+    );
+}
 
 /**
  * Opens job postings from the listing until one shows `buttonName`, and returns
@@ -64,21 +83,24 @@ function fulfilApply(route: Route, status: number, body: object) {
 
 test('AC-05.2 applying shows an explicit confirmation', async ({ page }) => {
     const jobId = await openJobWithButton(page, 'Apply Now');
+    await mockResumes(page, E2E_RESUMES);
 
     let sentJobId: string | undefined;
     await page.route(APPLY_REQUEST, (route) => {
         if (route.request().method() !== 'POST') return route.fallback();
-        sentJobId = route.request().postDataJSON().job_id;
+        sentJobId = route.request().postDataJSON().target_job_id;
         return fulfilApply(route, 201, {
             id: 'e2e-application',
             job_id: jobId,
             user_id: 'e2e-worker',
-            status: 'Pending',
+            resume_id: E2E_RESUMES[0].id,
+            status: 'Applied',
             applied_at: new Date().toISOString(),
         });
     });
 
     await page.getByRole('button', { name: 'Apply Now' }).click();
+    await page.getByRole('button', { name: 'Submit Application' }).click();
 
     await expect(page.getByText('Your application was submitted successfully.')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Applied' })).toBeDisabled();
@@ -87,6 +109,7 @@ test('AC-05.2 applying shows an explicit confirmation', async ({ page }) => {
 
 test('AC-05.3 a second application to the same posting is refused', async ({ page }) => {
     await openJobWithButton(page, 'Apply Now');
+    await mockResumes(page, E2E_RESUMES);
 
     // Supabase rejects a duplicate with a unique-violation error (23505).
     await page.route(APPLY_REQUEST, (route) => {
@@ -100,25 +123,58 @@ test('AC-05.3 a second application to the same posting is refused', async ({ pag
     });
 
     await page.getByRole('button', { name: 'Apply Now' }).click();
+    await page.getByRole('button', { name: 'Submit Application' }).click();
 
     await expect(page.getByText('You have already applied to this job.')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Applied' })).toBeDisabled();
 });
 
 test('AC-05.1 the Worker chooses one of their resumes when applying', async ({ page }) => {
-    // Not met: the Apply button submits straight away without asking for a
-    // resume. Marked as an expected failure so the gap stays visible; remove
-    // test.fail() once a resume picker exists.
-    test.fail();
-
     await openJobWithButton(page, 'Apply Now');
-    await page.route(APPLY_REQUEST, (route) =>
-        route.request().method() === 'POST' ? fulfilApply(route, 201, {}) : route.fallback(),
-    );
+    await mockResumes(page, E2E_RESUMES);
+
+    let sentResumeId: string | undefined;
+    await page.route(APPLY_REQUEST, (route) => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        sentResumeId = route.request().postDataJSON().target_resume_id;
+        return fulfilApply(route, 201, {});
+    });
 
     await page.getByRole('button', { name: 'Apply Now' }).click();
 
-    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 3_000 });
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    // Nothing is sent until the Worker confirms a resume
+    expect(sentResumeId).toBeUndefined();
+
+    await dialog.getByLabel('Resume').selectOption(E2E_RESUMES[1].id);
+    await dialog.getByRole('button', { name: 'Submit Application' }).click();
+
+    await expect(page.getByText('Your application was submitted successfully.')).toBeVisible();
+    expect(sentResumeId).toBe(E2E_RESUMES[1].id);
+});
+
+test('AC-05.4 a Worker with no resumes is told a resume is required', async ({ page }) => {
+    await openJobWithButton(page, 'Apply Now');
+    await mockResumes(page, []);
+
+    let applied = false;
+    await page.route(APPLY_REQUEST, (route) => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        applied = true;
+        return fulfilApply(route, 201, {});
+    });
+
+    await page.getByRole('button', { name: 'Apply Now' }).click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByText('A resume is required to apply.')).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Submit Application' })).toHaveCount(0);
+    await expect(dialog.getByRole('link', { name: 'Create Resume' })).toHaveAttribute(
+        'href',
+        '/resumes/edit',
+    );
+    expect(applied).toBe(false);
 });
 
 test('AC-06.1 the Worker sees each application with the posting it was for', async ({ page }) => {

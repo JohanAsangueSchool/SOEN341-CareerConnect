@@ -4,10 +4,13 @@ import {
     Badge,
     Button,
     Card,
+    CloseButton,
+    Dialog,
     EmptyState,
     HStack,
     Heading,
     NativeSelect,
+    Portal,
     Spinner,
     Text,
     VStack,
@@ -20,10 +23,12 @@ import {
     FaCalendar,
     FaClipboardCheck,
     FaEnvelope,
+    FaFile,
     FaPhone,
     FaXmark,
 } from 'react-icons/fa6';
 
+import ResumePreview, { ResumePreviewType } from '@/components/resume_preview';
 import { toaster } from '@/components/ui/toaster';
 import { useUserProfile } from '@/contexts/user_profile';
 import {
@@ -49,6 +54,9 @@ type Application = {
         location: string;
         job_type: string;
     } | null;
+    resumes: {
+        title: string;
+    } | null;
 };
 
 type RecruiterApplication = {
@@ -67,6 +75,8 @@ type RecruiterApplication = {
         email: string;
         phone: string;
     } | null;
+    // Null for applications submitted before resumes were linked, or if the resume was deleted
+    resumes: ResumePreviewType | null;
 };
 
 type JobOption = {
@@ -172,6 +182,12 @@ function WorkerApplications() {
                                     Applied on{' '}
                                     {new Date(application.applied_at).toLocaleDateString()}
                                 </Text>
+
+                                {application.resumes && (
+                                    <Text fontSize='sm' color='fg.muted'>
+                                        Resume sent: {application.resumes.title}
+                                    </Text>
+                                )}
 
                                 <div>
                                     <Text fontSize='sm' mb={1} color='fg.muted'>
@@ -492,13 +508,70 @@ function RecruiterApplicationCard({
                     </NativeSelect.Field>
                     <NativeSelect.Indicator />
                 </NativeSelect.Root>
-                <Link href={`/jobs/${application.job_id}`}>
-                    <Button variant='outline' size='sm'>
-                        View job
-                        <FaArrowRight />
-                    </Button>
-                </Link>
+                <HStack gap={2}>
+                    {application.resumes ? (
+                        <ResumeDialog
+                            resume={application.resumes}
+                            applicantName={
+                                applicant
+                                    ? `${applicant.first_name} ${applicant.last_name}`
+                                    : 'Unknown applicant'
+                            }
+                        />
+                    ) : (
+                        <Text textStyle='sm' color='fg.muted'>
+                            No resume attached
+                        </Text>
+                    )}
+                    <Link href={`/jobs/${application.job_id}`}>
+                        <Button variant='outline' size='sm'>
+                            View job
+                            <FaArrowRight />
+                        </Button>
+                    </Link>
+                </HStack>
             </Card.Footer>
         </Card.Root>
+    );
+}
+
+function ResumeDialog({
+    resume,
+    applicantName,
+}: {
+    resume: ResumePreviewType;
+    applicantName: string;
+}) {
+    return (
+        <Dialog.Root size='lg' scrollBehavior='inside'>
+            <Dialog.Trigger asChild>
+                <Button variant='outline' size='sm'>
+                    <FaFile />
+                    View Resume
+                </Button>
+            </Dialog.Trigger>
+
+            <Portal>
+                <Dialog.Backdrop />
+                <Dialog.Positioner>
+                    <Dialog.Content>
+                        <Dialog.Header flexDirection='column' alignItems='start' gap={1}>
+                            <Dialog.Title>{resume.title}</Dialog.Title>
+                            <Text textStyle='sm' color='fg.muted'>
+                                {applicantName}
+                            </Text>
+                        </Dialog.Header>
+
+                        <Dialog.Body>
+                            <ResumePreview resume={resume} />
+                        </Dialog.Body>
+
+                        <Dialog.CloseTrigger asChild>
+                            <CloseButton size='sm' />
+                        </Dialog.CloseTrigger>
+                    </Dialog.Content>
+                </Dialog.Positioner>
+            </Portal>
+        </Dialog.Root>
     );
 }

@@ -1,6 +1,19 @@
 'use client';
 
-import { Badge, Button, Card, HStack, Heading, Spinner, Text } from '@chakra-ui/react';
+import {
+    Badge,
+    Button,
+    Card,
+    CloseButton,
+    Dialog,
+    Field,
+    HStack,
+    Heading,
+    NativeSelect,
+    Portal,
+    Spinner,
+    Text,
+} from '@chakra-ui/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
@@ -11,11 +24,12 @@ import {
     FaLayerGroup,
     FaLocationDot,
     FaPen,
+    FaPlus,
 } from 'react-icons/fa6';
 
 import { toaster } from '@/components/ui/toaster';
 import { useUserProfile } from '@/contexts/user_profile';
-import { applyToJob, getJob, hasUserApplied } from '@/lib/supabase/apis';
+import { applyToJob, getJob, getUserResumes, hasUserApplied } from '@/lib/supabase/apis';
 import { createClientSupabase } from '@/lib/supabase/client';
 import { validRequestStatus } from '@/utils/function';
 import { formatSalary, jobStatusColorPalette, jobTypeColorPalette } from '@/utils/jobs';
@@ -35,12 +49,19 @@ type JobDetailType = {
     created_at: string;
 };
 
+type ResumeOption = {
+    id: string;
+    title: string;
+    status: string;
+};
+
 export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs/[id]'>) {
     const router = useRouter();
     const { id } = use(params);
     const isRecruiter = useUserProfile()?.account_type === 'Recruiter';
     const [job, setJob] = useState<JobDetailType>();
     const [applying, setApplying] = useState(false);
+    const [applyOpen, setApplyOpen] = useState(false);
     const [hasApplied, setHasApplied] = useState(false);
     const [isOwner, setIsOwner] = useState(false);
 
@@ -51,11 +72,11 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
         ),
     ).toString();
     const backHref = query ? `/jobs?${query}` : '/jobs';
-    async function handleApply() {
+    async function handleApply(resumeId: string) {
         setApplying(true);
 
         try {
-            const { error } = await applyToJob(createClientSupabase(), id);
+            const { error } = await applyToJob(createClientSupabase(), id, resumeId);
 
             if (error) {
                 if ('code' in error && error.code === '23505') {
@@ -66,6 +87,7 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                         closable: true,
                     });
                     setHasApplied(true);
+                    setApplyOpen(false);
                     return;
                 }
 
@@ -73,6 +95,7 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
             }
 
             setHasApplied(true);
+            setApplyOpen(false);
             toaster.create({
                 title: 'Application submitted!',
                 description: 'Your application was submitted successfully.',
@@ -225,22 +248,166 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                                 </Link>
                             )
                         ) : (
-                            <Button
-                                colorPalette='blue'
-                                onClick={handleApply}
-                                loading={applying}
-                                disabled={applying || hasApplied || job.status !== 'Open'}
-                            >
-                                {hasApplied
-                                    ? 'Applied'
-                                    : job.status !== 'Open'
-                                      ? 'Applications closed'
-                                      : 'Apply Now'}
-                            </Button>
+                            <>
+                                <Button
+                                    colorPalette='blue'
+                                    onClick={() => setApplyOpen(true)}
+                                    disabled={hasApplied || job.status !== 'Open'}
+                                >
+                                    {hasApplied
+                                        ? 'Applied'
+                                        : job.status !== 'Open'
+                                          ? 'Applications closed'
+                                          : 'Apply Now'}
+                                </Button>
+                                <ApplyDialog
+                                    open={applyOpen}
+                                    onOpenChange={setApplyOpen}
+                                    jobTitle={job.title}
+                                    applying={applying}
+                                    onApply={handleApply}
+                                />
+                            </>
                         )}
                     </Card.Footer>
                 </Card.Root>
             )}
         </main>
+    );
+}
+
+function ApplyDialog({
+    open,
+    onOpenChange,
+    jobTitle,
+    applying,
+    onApply,
+}: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    jobTitle: string;
+    applying: boolean;
+    onApply: (resumeId: string) => void;
+}) {
+    const [resumes, setResumes] = useState<ResumeOption[]>();
+    const [resumeId, setResumeId] = useState('');
+
+    // Reload on every open so resumes created in another tab show up
+    useEffect(() => {
+        if (!open) return;
+
+        let ignore = false;
+
+        async function load() {
+            try {
+                const { data, error, status } = await getUserResumes(createClientSupabase());
+
+                if (ignore) return;
+                if (!validRequestStatus(status) || error || !data) throw new Error();
+
+                setResumes(data);
+                // Resumes come most recently updated first, so preselect the latest one
+                setResumeId((current) =>
+                    data.some((resume) => resume.id === current) ? current : (data[0]?.id ?? ''),
+                );
+            } catch {
+                if (ignore) return;
+
+                setResumes([]);
+                toaster.create({
+                    title: 'Error',
+                    description: 'Failed to load your resumes.',
+                    type: 'error',
+                    closable: true,
+                });
+            }
+        }
+
+        load();
+        return () => {
+            ignore = true;
+        };
+    }, [open]);
+
+    const hasResumes = !!resumes && resumes.length > 0;
+
+    return (
+        <Dialog.Root
+            open={open}
+            onOpenChange={(e) => {
+                if (!applying) onOpenChange(e.open);
+            }}
+        >
+            <Portal>
+                <Dialog.Backdrop />
+                <Dialog.Positioner>
+                    <Dialog.Content>
+                        <Dialog.Header>
+                            <Dialog.Title>Apply to {jobTitle}</Dialog.Title>
+                        </Dialog.Header>
+
+                        <Dialog.Body className='flex flex-col'>
+                            {!resumes ? (
+                                <Spinner className='self-center' />
+                            ) : hasResumes ? (
+                                <Field.Root>
+                                    <Field.Label>Resume</Field.Label>
+                                    <NativeSelect.Root disabled={applying}>
+                                        <NativeSelect.Field
+                                            value={resumeId}
+                                            onChange={(e) => setResumeId(e.target.value)}
+                                        >
+                                            {resumes.map((resume) => (
+                                                <option key={resume.id} value={resume.id}>
+                                                    {resume.title} ({resume.status})
+                                                </option>
+                                            ))}
+                                        </NativeSelect.Field>
+                                        <NativeSelect.Indicator />
+                                    </NativeSelect.Root>
+                                    <Field.HelperText>
+                                        The recruiter will see this resume with your application.
+                                    </Field.HelperText>
+                                </Field.Root>
+                            ) : (
+                                <Text>
+                                    A resume is required to apply. Create one, then come back to
+                                    this posting.
+                                </Text>
+                            )}
+                        </Dialog.Body>
+
+                        <Dialog.Footer>
+                            <Dialog.ActionTrigger asChild>
+                                <Button variant='outline' disabled={applying}>
+                                    Cancel
+                                </Button>
+                            </Dialog.ActionTrigger>
+                            {resumes && !hasResumes ? (
+                                <Link href='/resumes/edit'>
+                                    <Button colorPalette='blue'>
+                                        <FaPlus />
+                                        Create Resume
+                                    </Button>
+                                </Link>
+                            ) : (
+                                <Button
+                                    colorPalette='blue'
+                                    loading={applying}
+                                    disabled={!resumeId}
+                                    onClick={() => onApply(resumeId)}
+                                >
+                                    Submit Application
+                                </Button>
+                            )}
+                        </Dialog.Footer>
+
+                        <Dialog.CloseTrigger asChild>
+                            <CloseButton size='sm' disabled={applying} />
+                        </Dialog.CloseTrigger>
+                    </Dialog.Content>
+                </Dialog.Positioner>
+            </Portal>
+        </Dialog.Root>
     );
 }

@@ -54,13 +54,8 @@ async function submitSignup(page: Page) {
 }
 
 test.describe('Registration', () => {
-    // Not met: sign-up fails in Supabase (the handle_new_user trigger does not
-    // copy phone and postal_code), so AC-A.1 and AC-A.2 are expected failures.
-    // Once sign-up works they pass, the build turns red, and test.fail() should
-    // be removed. Each passing run then creates a real user.
+    // Each run of AC-A.1 and AC-A.2 creates a real user in Supabase.
     test('AC-A.1 a visitor can register as a Worker', async ({ page }) => {
-        test.fail();
-
         await fillSignupForm(page, validSignup({ accountType: 'Worker' }));
         await submitSignup(page);
 
@@ -68,8 +63,6 @@ test.describe('Registration', () => {
     });
 
     test('AC-A.2 a visitor can register as a Recruiter', async ({ page }) => {
-        test.fail();
-
         await fillSignupForm(page, validSignup({ accountType: 'Recruiter' }));
         await submitSignup(page);
 

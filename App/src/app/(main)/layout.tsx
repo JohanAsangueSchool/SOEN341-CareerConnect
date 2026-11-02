@@ -79,7 +79,12 @@ function MainLayoutHeader({
 
     return (
         <header className='flex w-full items-center gap-2 border-b p-2'>
-            <Tabs.Root variant='subtle' value={pathname.split('/').slice(0, 2).join('/')}>
+            {/* The value follows the URL, so stop Zag from clicking the matching link whenever it changes */}
+            <Tabs.Root
+                variant='subtle'
+                value={pathname.split('/').slice(0, 2).join('/')}
+                navigate={null}
+            >
                 <Tabs.List>
                     <Tabs.Trigger value='/' asChild>
                         <Link unstyled href='/'>

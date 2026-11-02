@@ -523,12 +523,13 @@ function RecruiterApplicationCard({
                             No resume attached
                         </Text>
                     )}
-                    <Link href={`/jobs/${application.job_id}`}>
-                        <Button variant='outline' size='sm'>
+
+                    <Button asChild variant='outline' size='sm'>
+                        <Link href={`/jobs/${application.job_id}`}>
                             View job
                             <FaArrowRight />
-                        </Button>
-                    </Link>
+                        </Link>
+                    </Button>
                 </HStack>
             </Card.Footer>
         </Card.Root>

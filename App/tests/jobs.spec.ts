@@ -133,8 +133,21 @@ test('AC-16.2 the detail view shows the description, company, location, type and
 }) => {
     await openListing(page);
 
-    // Read what the card shows so the detail view can be checked against it.
-    const card = jobCards(page).first();
+    // The description is optional, so use the first posting that has one, and
+    // read what its card shows so the detail view can be checked against it.
+    const cards = jobCards(page);
+    let card = cards.first();
+    let description = '';
+    for (let i = 0; i < (await cards.count()); i++) {
+        const text = (await cards.nth(i).locator('.chakra-card__description').textContent())?.trim();
+        if (text && text !== 'No description.') {
+            card = cards.nth(i);
+            description = text;
+            break;
+        }
+    }
+    expect(description, 'a posting with a description').not.toBe('');
+
     const jobType = await card.locator('.chakra-badge').innerText();
     const company = (await card.getByText('· Posted').innerText()).split(' · ')[0];
     const locationOptions = page.getByRole('combobox', { name: 'Location' }).locator('option');
@@ -142,8 +155,6 @@ test('AC-16.2 the detail view shows the description, company, location, type and
     const locations = await locationOptions.allInnerTexts();
     const cardText = await card.innerText();
     const location = locations.find((option) => cardText.includes(option))!;
-    const description = (await card.locator('.chakra-card__description').textContent())!.trim();
-    expect(description).not.toBe('');
 
     await card.getByRole('link', { name: 'View' }).click();
 

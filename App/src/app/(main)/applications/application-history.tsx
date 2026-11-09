@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { FaArrowRight, FaCalendar, FaLocationDot } from 'react-icons/fa6';
+import { FaArrowRight } from 'react-icons/fa6';
 import {
     CartesianGrid,
     Line,
@@ -215,34 +215,32 @@ function ApplicationCard({ application }: { application: Application }) {
     const job = application.jobs;
 
     return (
-        <Card.Root size='sm'>
-            <Card.Header>
-                <HStack justify='space-between' align='start'>
-                    <Card.Title>{job?.title ?? 'Job unavailable'}</Card.Title>
+        <Card.Root>
+            <Card.Body gap={3}>
+                <Heading as='h2' textStyle='xl'>
+                    {job?.title ?? 'Job posting unavailable'}
+                </Heading>
+
+                <Text fontWeight='medium'>{job?.company ?? 'Unknown company'}</Text>
+
+                <Text color='fg.muted' fontSize='sm'>
+                    {job ? `${job.location} · ${job.job_type}` : 'Job details unavailable'}
+                </Text>
+
+                <Text fontSize='sm'>
+                    Applied on {new Date(application.applied_at).toLocaleDateString()}
+                </Text>
+
+                <div>
+                    <Text fontSize='sm' mb={1} color='fg.muted'>
+                        Application status
+                    </Text>
                     <Badge
                         colorPalette={applicationStatusColorPalette[application.status] ?? 'gray'}
                     >
                         {application.status}
                     </Badge>
-                </HStack>
-                <Text textStyle='sm' color='fg.muted'>
-                    {job?.company ?? 'Unknown company'}
-                </Text>
-            </Card.Header>
-
-            <Card.Body>
-                <HStack gap={4} color='fg.muted' textStyle='sm' wrap='wrap'>
-                    {job && (
-                        <HStack gap={1}>
-                            <FaLocationDot />
-                            {job.location} · {job.job_type}
-                        </HStack>
-                    )}
-                    <HStack gap={1}>
-                        <FaCalendar />
-                        Applied on {new Date(application.applied_at).toLocaleDateString()}
-                    </HStack>
-                </HStack>
+                </div>
             </Card.Body>
 
             <Card.Footer>

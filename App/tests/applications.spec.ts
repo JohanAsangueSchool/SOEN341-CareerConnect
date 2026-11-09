@@ -1,9 +1,9 @@
 import { type Page, type Route, expect, test } from '@playwright/test';
 
-import { WORKER_STATE } from './helpers';
+import { NOT_BUILT_TIMEOUT, WORKER_STATE } from './helpers';
 
 /**
- * US-05 — Job Application Submission (AC-05.1 … AC-05.3)
+ * US-05 — Job Application Submission (AC-05.1 … AC-05.4)
  * US-06 — Job Application Tracking (AC-06.1, AC-06.2)
  *
  * A Worker can apply to each posting only once, and the suite shares one
@@ -12,8 +12,8 @@ import { WORKER_STATE } from './helpers';
  * its real flow and the test checks the request it sends, but nothing is
  * written to Supabase.
  *
- * AC-05.4 (no resumes) needs an account with no resumes and is not automated.
- * AC-06.3 (status changed by a recruiter) has no recruiter screen yet.
+ * AC-05.1 and AC-05.4 are not met (no resume when applying) and are expected
+ * failures. AC-06.3 (status changed by a recruiter) is in recruiter.spec.ts.
  * See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
@@ -147,4 +147,23 @@ test('AC-06.2 each application shows a status from the agreed list', async ({ pa
     for (const status of await badges.allInnerTexts()) {
         expect(allowed).toContain(status.trim());
     }
+});
+
+test('AC-05.4 a Worker with no resumes cannot apply', async ({ page }) => {
+    // Not met: applying does not check for a resume. Remove test.fail() once it does.
+    test.fail();
+
+    await page.route('**/rest/v1/resumes**', (route) =>
+        route.request().method() === 'GET'
+            ? route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
+            : route.fallback(),
+    );
+    await openJobWithButton(page, 'Apply Now');
+    await page.route(APPLY_REQUEST, (route) =>
+        route.request().method() === 'POST' ? fulfilApply(route, 201, {}) : route.fallback(),
+    );
+
+    await page.getByRole('button', { name: 'Apply Now' }).click();
+
+    await expect(page.getByText(/create a resume/i)).toBeVisible({ timeout: NOT_BUILT_TIMEOUT });
 });

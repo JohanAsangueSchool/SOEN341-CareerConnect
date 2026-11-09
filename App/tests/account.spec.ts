@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-import { WORKER_STATE, avatarMenu, worker } from './helpers';
+import { NOT_BUILT_TIMEOUT, WORKER_STATE, avatarMenu, worker } from './helpers';
 
 /**
- * US-01 — User Profile Management (AC-01.1 … AC-01.5)
- * AC-01.6 (change the avatar) is not implemented and so has no test here.
+ * US-01 — User Profile Management (AC-01.1 … AC-01.6)
+ * AC-01.6 (change the avatar) is not built yet and is an expected failure.
  * See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
@@ -68,4 +68,14 @@ test('AC-01.5 an edited profile field is saved', async ({ page }) => {
         await page.getByRole('button', { name: 'Save', exact: true }).click();
         await expect(page.getByText('Account updated.')).toBeVisible();
     }
+});
+
+test('AC-01.6 a user can change their avatar picture', async ({ page }) => {
+    test.fail();
+
+    await page.goto('/account');
+
+    await expect(page.getByRole('button', { name: 'Change picture' })).toBeVisible({
+        timeout: NOT_BUILT_TIMEOUT,
+    });
 });

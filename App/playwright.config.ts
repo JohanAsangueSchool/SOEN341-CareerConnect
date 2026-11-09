@@ -18,8 +18,13 @@ export default defineConfig({
 
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
-    // `npx playwright show-report` opens the HTML report of the last run.
-    reporter: [['list'], ['html', { open: 'never' }]],
+    // `npx playwright show-report` opens the HTML report of the last run. The
+    // JSON results feed the status tables on the user story issues in CI.
+    reporter: [
+        ['list'],
+        ['html', { open: 'never' }],
+        ['json', { outputFile: 'test-results/results.json' }],
+    ],
 
     use: {
         baseURL,

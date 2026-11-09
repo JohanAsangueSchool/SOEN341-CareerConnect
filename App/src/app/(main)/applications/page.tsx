@@ -37,6 +37,7 @@ import { ApplicationStatusEnumType, ApplicationStatusEnumValues } from '@/utils/
 import { validRequestStatus } from '@/utils/function';
 
 import { updateApplicationStatus } from './actions';
+import ApplicationHistory from './application-history';
 
 type Application = {
     id: string;
@@ -83,7 +84,7 @@ export default function ApplicationsPage() {
             <RecruiterApplications />
         </Suspense>
     ) : (
-        <WorkerApplications />
+         <ApplicationHistory />
     );
 }
 

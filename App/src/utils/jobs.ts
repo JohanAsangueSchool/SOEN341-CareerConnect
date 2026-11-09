@@ -20,4 +20,5 @@ export const jobStatusColorPalette: Record<string, string> = {
     Draft: 'gray',
     Open: 'green',
     Closed: 'red',
+    Archived: 'orange',
 };

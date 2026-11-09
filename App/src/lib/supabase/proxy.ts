@@ -59,5 +59,9 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(new URL('/jobs', url));
     }
 
+    if (data?.account_type !== 'Recruiter' && url.pathname.startsWith('/dashboard')) {
+        return NextResponse.redirect(new URL('/', url));
+    }
+
     return supabaseResponse;
 }

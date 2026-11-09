@@ -4,7 +4,7 @@ import { Avatar, Link, Menu, Portal, Spinner, Tabs } from '@chakra-ui/react';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { FaBriefcase, FaClipboardCheck, FaFile, FaHouse } from 'react-icons/fa6';
+import { FaBriefcase, FaClipboardCheck, FaFile, FaGaugeHigh, FaHouse } from 'react-icons/fa6';
 
 import { toaster } from '@/components/ui/toaster';
 import { UserProfileProvider, UserProfileType } from '@/contexts/user_profile';
@@ -87,6 +87,15 @@ function MainLayoutHeader({
                             Home
                         </Link>
                     </Tabs.Trigger>
+
+                    {userProfile.account_type === 'Recruiter' && (
+                        <Tabs.Trigger value='/dashboard' asChild>
+                            <Link unstyled href='/dashboard'>
+                                <FaGaugeHigh />
+                                Dashboard
+                            </Link>
+                        </Tabs.Trigger>
+                    )}
 
                     <Tabs.Trigger value='/jobs' asChild>
                         <Link unstyled href='/jobs'>

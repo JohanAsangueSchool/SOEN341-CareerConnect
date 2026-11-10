@@ -1,15 +1,23 @@
 import { type Browser, type Locator, type Page, expect, test } from '@playwright/test';
 
-import { RECRUITER_STATE, WORKER_STATE, uniqueTitle, worker } from './helpers';
+import {
+    NOT_BUILT_TIMEOUT,
+    RECRUITER_STATE,
+    WORKER_STATE,
+    uniqueTitle,
+    worker,
+    workerApplicationCard,
+} from './helpers';
 
 /**
- * US-08 — Recruiter Posting Management (AC-08.1 … AC-08.3, AC-08.5)
+ * US-08 — Recruiter Posting Management (AC-08.1 … AC-08.5)
  * US-06 — Job Application Tracking (AC-06.3)
  *
  * These change shared data, so each test puts it back when it finishes: the
  * posting test closes the posting it created (closed postings are hidden from
  * Workers), and the status test restores the application's original status.
- * AC-08.4 (applicant's resume) is not met: applications carry no resume.
+ * AC-08.4 (applicant's resume) is not met: applications carry no resume, so
+ * its test is an expected failure.
  * See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
@@ -155,4 +163,15 @@ test('AC-06.3 a status changed by the Recruiter shows for the Worker', async ({
         await expect(page.getByText(`Application marked as ${original}.`)).toBeVisible();
         await seeker.context().close();
     }
+});
+
+test('AC-08.4 a Recruiter can open the resume attached to an application', async ({ page }) => {
+    // Not met: applications carry no resume. Remove test.fail() once they do.
+    test.fail();
+
+    await page.goto('/applications');
+
+    await expect(
+        workerApplicationCard(page).getByRole('link', { name: 'View resume' }),
+    ).toBeVisible({ timeout: NOT_BUILT_TIMEOUT });
 });

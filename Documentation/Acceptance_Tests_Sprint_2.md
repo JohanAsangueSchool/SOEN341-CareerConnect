@@ -1,13 +1,13 @@
 # Acceptance Tests — Sprint 2
 
 Each user story has acceptance criteria. A story is complete when its criteria pass.
-Automated tests live in `App/tests/` (Playwright) and run on GitHub on every push and pull request.
+Every criterion has an automated test in `App/tests/` (Playwright), which runs on GitHub on every push and pull request.
 
-**Status:** **Pass** = automated and passing · **Manual** = checked by hand · **Untested** = built, no test yet · **Not met** = built but behaves differently · **Not built**
+**Live status:** after every push to `main`, CI writes each test's result into its user story issue (#13 – #27, #36), so the issues always show the latest Pass / Fail. The statuses below are a snapshot.
 
-**Summary (60 criteria):** 52 Pass · 1 Manual · 3 Not met · 4 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: AC-01.6, AC-02.16 – AC-02.18 (file upload and resume delete).
+**Status:** **Pass** = test passes · **Not met** = built but behaves differently · **Not built** = feature does not exist yet. Not met and Not built tests are expected failures (`test.fail()`).
 
-**Latest full run (2026-10-26):** 54 passed, including 3 expected failures (AC-A.1, AC-A.2, AC-05.1), locally and [on GitHub](https://github.com/JohanAsangueSchool/SOEN341-CareerConnect/actions/runs/40441811736).
+**Summary (78 criteria):** 55 Pass · 3 Not met · 20 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: AC-01.6, AC-02.16 – AC-02.18 (file upload and resume delete), and US-04, US-07, US-09 – US-15 apart from AC-09.1 and AC-10.1.
 
 ## Running the tests
 
@@ -53,7 +53,7 @@ npx playwright show-report
 | AC-01.3 | Avatar shows initials when there is no picture | Pass | `account.spec.ts` |
 | AC-01.4 | Avatar menu shows the full name | Pass | `account.spec.ts` |
 | AC-01.5 | User can edit the profile and changes are saved | Pass | `account.spec.ts` |
-| AC-01.6 | User can upload or change the avatar picture | Not built | — |
+| AC-01.6 | User can upload or change the avatar picture | Not built | `account.spec.ts` |
 
 ## US-02 — Resume management
 
@@ -61,7 +61,7 @@ npx playwright show-report
 |---|---|---|---|
 | AC-02.1 | Worker can create a resume and it appears in the list | Pass | `resumes.spec.ts` |
 | AC-02.2 | New resume shows a Draft badge | Pass | `resumes.spec.ts` |
-| AC-02.3 | Worker with no resumes sees "No resumes yet" | Manual | — |
+| AC-02.3 | Worker with no resumes sees "No resumes yet" | Pass | `resumes.spec.ts` |
 | AC-02.4 | Empty title is rejected | Pass | `resumes.spec.ts` |
 | AC-02.5 | Education entry is saved | Pass | `resumes.spec.ts` |
 | AC-02.6 | Education without establishment is rejected | Pass | `resumes.spec.ts` |
@@ -74,9 +74,9 @@ npx playwright show-report
 | AC-02.13 | Status change shows on the resume list | Pass | `resumes.spec.ts` |
 | AC-02.14 | Entry with no end month saves as ongoing | Pass | `resumes.spec.ts` |
 | AC-02.15 | Resume card shows its section counts | Pass | `resumes.spec.ts` |
-| AC-02.16 | Worker can upload a resume file (PDF/DOCX) | Not built | — |
-| AC-02.17 | Worker can replace an uploaded resume file | Not built | — |
-| AC-02.18 | Worker can delete a resume | Not built | — |
+| AC-02.16 | Worker can upload a resume file (PDF/DOCX) | Not built | `resumes.spec.ts` |
+| AC-02.17 | Worker can replace an uploaded resume file | Not built | `resumes.spec.ts` |
+| AC-02.18 | Worker can delete a resume | Not built | `resumes.spec.ts` |
 
 ## US-03 — Job search
 
@@ -100,10 +100,10 @@ npx playwright show-report
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-05.1 | Worker chooses one of their resumes when applying | Not met | `applications.spec.ts` (expected failure) |
+| AC-05.1 | Worker chooses one of their resumes when applying | Not met | `applications.spec.ts` |
 | AC-05.2 | Worker sees a confirmation after applying | Pass | `applications.spec.ts` |
 | AC-05.3 | Worker cannot apply twice to the same job | Pass | `applications.spec.ts` |
-| AC-05.4 | Worker with no resumes cannot apply | Not met | — |
+| AC-05.4 | Worker with no resumes cannot apply | Not met | `applications.spec.ts` |
 
 ## US-06 — Application tracking
 
@@ -120,8 +120,71 @@ npx playwright show-report
 | AC-08.1 | Recruiter can create and post a job, and it appears in the listing | Pass | `recruiter.spec.ts` |
 | AC-08.2 | Posting with a required field empty is rejected | Pass | `recruiter.spec.ts` |
 | AC-08.3 | Recruiter can edit their own posting | Pass | `recruiter.spec.ts` |
-| AC-08.4 | Recruiter sees applications received, with each applicant's resume | Not met (no resume attached) | — |
+| AC-08.4 | Recruiter sees applications received, with each applicant's resume | Not met (no resume attached) | `recruiter.spec.ts` |
 | AC-08.5 | Worker cannot open the posting editor | Pass | `recruiter.spec.ts` |
+
+## US-04 — Saved jobs
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-04.1 | Worker can save a job from its detail page | Not built | `saved-jobs.spec.ts` |
+| AC-04.2 | Saved jobs are listed on the Saved Jobs page | Not built | `saved-jobs.spec.ts` |
+
+## US-07 — Application status notifications
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-07.1 | Header has a notifications button | Not built | `notifications.spec.ts` |
+| AC-07.2 | Status change notification names the new status | Not built | `notifications.spec.ts` |
+
+## US-09 — Candidate profile and resume viewer
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-09.1 | Recruiter sees each applicant's name and contact details | Pass | `candidates.spec.ts` |
+| AC-09.2 | Recruiter can open an applicant's full profile | Not built | `candidates.spec.ts` |
+
+## US-10 — Application review and feedback
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-10.1 | Each application received can be set to any of the agreed statuses | Pass | `candidates.spec.ts` |
+| AC-10.2 | Recruiter can leave feedback on an application | Not built | `candidates.spec.ts` |
+
+## US-11 — New job alerts
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-11.1 | Worker can choose fields of interest for job alerts | Not built | `notifications.spec.ts` |
+| AC-11.2 | New posting in a chosen field shows as a notification | Not built | `notifications.spec.ts` |
+
+## US-12 — Job expiry reminders
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-12.1 | Job posting shows its application deadline | Not built | `notifications.spec.ts` |
+| AC-12.2 | Saved job about to expire shows as a notification | Not built | `notifications.spec.ts` |
+
+## US-13 — AI cover letter generator
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-13.1 | Job detail page offers to generate a cover letter | Not built | `cover-letter.spec.ts` |
+| AC-13.2 | Generated cover letter mentions the job title | Not built | `cover-letter.spec.ts` |
+
+## US-14 — Candidate search
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-14.1 | Recruiter can open the candidate search page | Not built | `candidates.spec.ts` |
+| AC-14.2 | Searching by name returns the matching candidate | Not built | `candidates.spec.ts` |
+
+## US-15 — Favorite candidates
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-15.1 | Recruiter can add a candidate to their favorites | Not built | `candidates.spec.ts` |
+| AC-15.2 | Favorite candidates are listed on their own page | Not built | `candidates.spec.ts` |
 
 ## Open issues
 
@@ -132,7 +195,8 @@ npx playwright show-report
 ## Notes
 
 - The apply tests intercept the submit request, so they don't write to Supabase.
-- AC-05.1 is an expected failure (`test.fail()`): it turns red once the gap is fixed, as a reminder to remove the marker.
+- Not met and Not built tests are expected failures (`test.fail()`): each turns red once its feature works, as a reminder to remove the marker. Tests of features not built yet guess the button and page names, so adjust them to the real page when building the feature.
+- The issue tables are written by `.github/scripts/update-acceptance-issues.mjs`. A test is listed under the story its ID belongs to (AC-04.x under US-04), so a new test only needs the ID at the start of its title.
 - Each run of AC-A.1 and AC-A.2 creates a real user in Supabase; clear the `e2e+…@example.com` users from time to time.
 - Resume tests create resumes titled `[E2E] …` on the shared Worker account; clear them in Supabase from time to time.
 - The test accounts are shared. AC-A.11 signs out with the "local" scope so it ends only its own session; logging out of a test account manually in the app ends every session of that account and can fail a CI run in progress. CI runs the acceptance tests one at a time for the same reason.

@@ -53,6 +53,10 @@ jobs:
         concurrency:
             group: acceptance-tests
             cancel-in-progress: false
+        # Writing the results into the user story issues needs issue access.
+        permissions:
+            contents: read
+            issues: write
         steps:
             - uses: actions/checkout@v4
 
@@ -106,3 +110,14 @@ jobs:
                   name: playwright-report
                   path: App/playwright-report/
                   retention-days: 7
+
+            # Only `main` reflects the project's real state, so results from
+            # pull requests and other branches do not touch the issues. Runs
+            # even when tests fail, so failures show on the issues too.
+            - name: Update acceptance test status on the user story issues
+              if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+              working-directory: .
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: node .github/scripts/update-acceptance-issues.mjs App/test-results/results.json

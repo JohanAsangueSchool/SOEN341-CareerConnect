@@ -1,16 +1,23 @@
 import { type Page, expect, test } from '@playwright/test';
 
-import { WORKER_STATE, createResume, resumeCard, resumeSection, uniqueTitle } from './helpers';
+import {
+    NOT_BUILT_TIMEOUT,
+    WORKER_STATE,
+    createResume,
+    resumeCard,
+    resumeSection,
+    uniqueTitle,
+} from './helpers';
 
 /**
- * US-02 — Resume Management (AC-02.1, AC-02.2, AC-02.4 … AC-02.15)
+ * US-02 — Resume Management (AC-02.1 … AC-02.18)
  *
- * AC-02.3 (the "No resumes yet" empty state) is verified manually: the account
- * must have zero resumes, and there is no delete function yet (AC-02.18), so it
- * cannot be restored once this suite has run.
+ * AC-02.3 (the "No resumes yet" empty state) answers the list request with an
+ * empty list in the browser, because the shared account always has resumes.
  *
  * AC-02.16 … AC-02.18 cover file upload, replacement and deletion, none of
- * which are implemented. See Documentation/Acceptance_Tests_Sprint_2.md.
+ * which are built yet, so they are expected failures.
+ * See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
 test.use({ storageState: WORKER_STATE });
@@ -267,4 +274,48 @@ test('AC-02.15 a resume card shows its section counts', async ({ page }) => {
     // 1 skill, 0 projects — in that order. The Edit button also has an icon.
     const counts = resumeCard(page, title).locator('svg').locator('xpath=..').filter({ hasNotText: 'Edit' });
     await expect(counts).toHaveText(['1', '1', '1', '0']);
+});
+
+test('AC-02.3 a Worker with no resumes sees an empty state', async ({ page }) => {
+    // The shared account always has resumes, so the list request is answered
+    // with an empty list in the browser instead.
+    await page.route('**/rest/v1/resumes**', (route) =>
+        route.request().method() === 'GET'
+            ? route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
+            : route.fallback(),
+    );
+
+    await page.goto('/resumes');
+
+    await expect(page.getByText('No resumes yet')).toBeVisible();
+});
+
+test('AC-02.16 a Worker can upload a resume file', async ({ page }) => {
+    test.fail();
+
+    await page.goto('/resumes');
+
+    await expect(page.getByRole('button', { name: 'Upload resume' })).toBeVisible({
+        timeout: NOT_BUILT_TIMEOUT,
+    });
+});
+
+test('AC-02.17 a Worker can replace an uploaded resume file', async ({ page }) => {
+    test.fail();
+
+    await page.goto('/resumes');
+
+    await expect(page.getByRole('button', { name: 'Replace file' }).first()).toBeVisible({
+        timeout: NOT_BUILT_TIMEOUT,
+    });
+});
+
+test('AC-02.18 a Worker can delete a resume', async ({ page }) => {
+    test.fail();
+
+    await page.goto('/resumes');
+
+    await expect(page.getByRole('button', { name: 'Delete' }).first()).toBeVisible({
+        timeout: NOT_BUILT_TIMEOUT,
+    });
 });

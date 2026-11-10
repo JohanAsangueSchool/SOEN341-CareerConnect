@@ -95,6 +95,33 @@ export function resumeCard(page: Page, title: string): Locator {
         .locator('xpath=ancestor::div[.//a[contains(@href, "/resumes/edit?id=")]][1]');
 }
 
+/**
+ * How long a test of a feature that is not built yet waits for it. These tests
+ * are expected failures (`test.fail()`), so a short wait keeps them quick.
+ */
+export const NOT_BUILT_TIMEOUT = 3_000;
+
+/** Opens the first posting on the job listing and waits for its detail page. */
+export async function openFirstJob(page: Page) {
+    await page.goto('/jobs');
+    const view = page.getByRole('link', { name: 'View' }).first();
+    await expect(view).toBeVisible();
+    await view.click();
+    await expect(page).toHaveURL(/\/jobs\/[^/?]+/);
+}
+
+/**
+ * An application card on the Recruiter's applications page that belongs to the
+ * shared Worker account. Requires the Worker to have applied to one of the
+ * Recruiter's postings.
+ */
+export function workerApplicationCard(page: Page): Locator {
+    return page
+        .getByText(worker.fullName, { exact: true })
+        .locator('xpath=ancestor::div[.//select[@aria-label="Application status"]][1]')
+        .first();
+}
+
 /** A title that is unique per run and identifiable as test data. */
 export function uniqueTitle(label: string): string {
     return `[E2E] ${label} ${Date.now()}`;

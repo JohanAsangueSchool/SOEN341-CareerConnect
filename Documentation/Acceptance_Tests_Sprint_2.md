@@ -3,7 +3,7 @@
 Each user story has acceptance criteria. A story is complete when its criteria pass.
 Every criterion has an automated test in `App/tests/` (Playwright), which runs on GitHub on every push and pull request.
 
-**Live status:** after every push to `main`, CI writes each test's result into its user story issue (#13 – #27, #36, #46 – #55), so the issues always show the latest Pass / Fail. The statuses below are a snapshot.
+**Live status:** after every push to `main`, CI writes each test's result into its user story issue (#13 – #27, #36, #46 – #55), so the issues always show the latest Pass / Fail. Each story also gets a label on the Issues list: `tests: passing`, `tests: partial` (some criteria not met or built yet), `tests: not built` or `tests: failing`. The statuses below are a snapshot.
 
 **Status:** **Pass** = test passes · **Not met** = built but behaves differently · **Not built** = feature does not exist yet. Not met and Not built tests are expected failures (`test.fail()`).
 

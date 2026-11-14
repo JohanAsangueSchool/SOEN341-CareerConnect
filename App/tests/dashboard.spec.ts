@@ -147,7 +147,13 @@ test('AC-18.1 a new posting can be started from the dashboard', async ({ page })
     });
     page.on('request', (r) => {
         if (r.isNavigationRequest() || r.url().includes('jobs'))
-            console.log('[req]', r.method(), r.url(), r.isNavigationRequest() ? 'NAV' : '', r.redirectedFrom()?.url() ?? '');
+            console.log(
+                '[req]',
+                r.method(),
+                r.url(),
+                r.isNavigationRequest() ? 'NAV' : '',
+                r.redirectedFrom()?.url() ?? '',
+            );
     });
     page.on('response', (r) => {
         if (r.request().isNavigationRequest() || r.status() >= 300)

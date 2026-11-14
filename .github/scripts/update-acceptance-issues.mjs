@@ -1,4 +1,6 @@
-// Writes the latest acceptance test results into each user story issue.
+// Writes the latest acceptance test results into each user story issue, and
+// labels the issue with the overall status (LABELS) so it shows on the Issues
+// list.
 //
 // Usage: node update-acceptance-issues.mjs <playwright-results.json>
 // Needs GITHUB_TOKEN and GITHUB_REPOSITORY; RUN_URL and GITHUB_SHA are linked
@@ -165,12 +167,61 @@ async function github(path, options = {}) {
         },
     });
     if (!response.ok) {
-        throw new Error(`${options.method ?? 'GET'} ${path} failed: ${response.status}`);
+        const error = new Error(`${options.method ?? 'GET'} ${path} failed: ${response.status}`);
+        error.status = response.status;
+        throw error;
     }
     return response.json();
 }
 
+const LABELS = {
+    passing: { name: 'tests: passing', color: '2da44e' },
+    partial: { name: 'tests: partial', color: 'd4a72c' },
+    notBuilt: { name: 'tests: not built', color: '8c959f' },
+    failing: { name: 'tests: failing', color: 'cf222e' },
+};
+const LABEL_PREFIX = 'tests: ';
+
+/**
+ * The overall status of a story: failing if any test fails or needs attention,
+ * passing if all pass, not built if none does, and partial in between.
+ */
+function labelFor(rows) {
+    const statuses = rows.map((row) => row.status);
+    if (statuses.some((status) => status.startsWith('❌ Fail') || status.startsWith('⚠️'))) {
+        return LABELS.failing;
+    }
+    if (statuses.every((status) => status === '✅ Pass')) return LABELS.passing;
+    if (statuses.every((status) => status === '❌ Not met')) return LABELS.notBuilt;
+    return LABELS.partial;
+}
+
+/** Creates any status label the repository does not have yet. */
+async function ensureLabels() {
+    for (const { name, color } of Object.values(LABELS)) {
+        try {
+            await github(`/labels/${encodeURIComponent(name)}`);
+        } catch (error) {
+            if (error.status !== 404) throw error;
+            await github('/labels', {
+                method: 'POST',
+                body: JSON.stringify({
+                    name,
+                    color,
+                    description: 'Acceptance tests, updated by CI',
+                }),
+            });
+        }
+    }
+}
+
 let failed = false;
+try {
+    await ensureLabels();
+} catch (error) {
+    console.error(`Status labels: ${error.message}`);
+    failed = true;
+}
 for (const [story, issue] of Object.entries(STORY_ISSUES)) {
     const rows = rowsByStory[story] ?? [];
     if (rows.length < 2) {
@@ -179,15 +230,24 @@ for (const [story, issue] of Object.entries(STORY_ISSUES)) {
     if (rows.length === 0) continue;
 
     try {
-        const { body } = await github(`/issues/${issue}`);
+        const { body, labels } = await github(`/issues/${issue}`);
         const updated = withSection(body, section(rows));
-        if (updated === body) continue;
+
+        // Keep the issue's other labels and replace its status label.
+        const label = labelFor(rows);
+        const current = labels.map((existing) => existing.name);
+        const kept = current.filter((name) => !name.startsWith(LABEL_PREFIX));
+        const newLabels = [...kept, label.name];
+        const labelsChanged =
+            newLabels.length !== current.length ||
+            newLabels.some((name) => !current.includes(name));
+        if (updated === body && !labelsChanged) continue;
 
         await github(`/issues/${issue}`, {
             method: 'PATCH',
-            body: JSON.stringify({ body: updated }),
+            body: JSON.stringify({ body: updated, labels: newLabels }),
         });
-        console.log(`US-${story} (#${issue}): ${rows.length} tests updated.`);
+        console.log(`US-${story} (#${issue}): ${rows.length} tests updated, ${label.name}.`);
     } catch (error) {
         console.error(`US-${story} (#${issue}): ${error.message}`);
         failed = true;

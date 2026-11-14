@@ -79,7 +79,14 @@ function MainLayoutHeader({
 
     return (
         <header className='flex w-full items-center gap-2 border-b p-2'>
-            <Tabs.Root variant='subtle' value={pathname.split('/').slice(0, 2).join('/')}>
+            {/* The selected tab follows the URL. navigate={null} stops Tabs from
+                clicking the newly selected tab's link whenever that changes, which
+                sent e.g. /dashboard -> /jobs/edit on to /jobs. The links navigate. */}
+            <Tabs.Root
+                variant='subtle'
+                value={pathname.split('/').slice(0, 2).join('/')}
+                navigate={null}
+            >
                 <Tabs.List>
                     <Tabs.Trigger value='/' asChild>
                         <Link unstyled href='/'>

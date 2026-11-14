@@ -139,28 +139,7 @@ test('AC-17.3 a Worker cannot open the dashboard', async ({ browser }) => {
 });
 
 test('AC-18.1 a new posting can be started from the dashboard', async ({ page }) => {
-    // TEMP DEBUG: find out why the click lands on /jobs.
-    page.on('console', (m) => console.log('[browser]', m.type(), m.text()));
-    page.on('pageerror', (e) => console.log('[pageerror]', e.message, e.stack));
-    page.on('framenavigated', (f) => {
-        if (f === page.mainFrame()) console.log('[nav]', f.url());
-    });
-    page.on('request', (r) => {
-        if (r.isNavigationRequest() || r.url().includes('jobs'))
-            console.log(
-                '[req]',
-                r.method(),
-                r.url(),
-                r.isNavigationRequest() ? 'NAV' : '',
-                r.redirectedFrom()?.url() ?? '',
-            );
-    });
-    page.on('response', (r) => {
-        if (r.request().isNavigationRequest() || r.status() >= 300)
-            console.log('[res]', r.status(), r.url(), r.headers()['location'] ?? '');
-    });
     await openDashboard(page);
-    console.log('[debug] clicking');
 
     await page.getByRole('link', { name: 'New Job Posting' }).click();
 

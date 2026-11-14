@@ -115,7 +115,7 @@ test.afterAll(async ({ browser }) => {
 test('AC-17.1 the dashboard lists the Recruiter’s postings', async ({ page }) => {
     await openDashboard(page);
 
-    await expect(page.locator('header').getByRole('link', { name: 'Dashboard' })).toBeVisible();
+    await expect(page.locator('header').getByRole('tab', { name: 'Dashboard' })).toBeVisible();
     await expect(postingCard(page)).toBeVisible();
     await expect(postingCard(page)).toContainText('Open');
 });
@@ -133,8 +133,8 @@ test('AC-17.3 a Worker cannot open the dashboard', async ({ browser }) => {
     await page.goto('/dashboard');
 
     await expect(page).toHaveURL('/');
-    await expect(page.locator('header').getByRole('link', { name: 'Jobs' })).toBeVisible();
-    await expect(page.locator('header').getByRole('link', { name: 'Dashboard' })).toHaveCount(0);
+    await expect(page.locator('header').getByRole('tab', { name: 'Jobs' })).toBeVisible();
+    await expect(page.locator('header').getByRole('tab', { name: 'Dashboard' })).toHaveCount(0);
     await page.context().close();
 });
 

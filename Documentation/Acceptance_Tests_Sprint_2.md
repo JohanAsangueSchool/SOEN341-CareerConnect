@@ -3,11 +3,11 @@
 Each user story has acceptance criteria. A story is complete when its criteria pass.
 Every criterion has an automated test in `App/tests/` (Playwright), which runs on GitHub on every push and pull request.
 
-**Live status:** after every push to `main`, CI writes each test's result into its user story issue (#13 – #27, #36), so the issues always show the latest Pass / Fail. The statuses below are a snapshot.
+**Live status:** after every push to `main`, CI writes each test's result into its user story issue (#13 – #27, #36, #46 – #55), so the issues always show the latest Pass / Fail. The statuses below are a snapshot.
 
 **Status:** **Pass** = test passes · **Not met** = built but behaves differently · **Not built** = feature does not exist yet. Not met and Not built tests are expected failures (`test.fail()`).
 
-**Summary (78 criteria):** 55 Pass · 3 Not met · 20 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: AC-01.6, AC-02.16 – AC-02.18 (file upload and resume delete), and US-04, US-07, US-09 – US-15 apart from AC-09.1 and AC-10.1.
+**Summary (101 criteria):** 68 Pass · 3 Not met · 30 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: AC-01.6, AC-02.16 – AC-02.18 (file upload and resume delete), US-04, US-07, US-09 – US-15 apart from AC-09.1 and AC-10.1, and US-22 – US-26.
 
 ## Running the tests
 
@@ -186,6 +186,79 @@ npx playwright show-report
 | AC-15.1 | Recruiter can add a candidate to their favorites | Not built | `candidates.spec.ts` |
 | AC-15.2 | Favorite candidates are listed on their own page | Not built | `candidates.spec.ts` |
 
+## US-17 — Recruiter dashboard
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-17.1 | Dashboard lists the Recruiter's postings | Pass | `dashboard.spec.ts` |
+| AC-17.2 | Each posting shows how many applications it received | Pass | `dashboard.spec.ts` |
+| AC-17.3 | Worker cannot open the dashboard | Pass | `dashboard.spec.ts` |
+
+## US-18 — Posting management
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-18.1 | New posting can be started from the dashboard | Pass | `dashboard.spec.ts` |
+| AC-18.2 | Archived posting moves to the archived list | Pass | `dashboard.spec.ts` |
+| AC-18.3 | Archived posting is hidden from Workers | Pass | `dashboard.spec.ts` |
+| AC-18.4 | Restored posting returns to the active list as Closed | Pass | `dashboard.spec.ts` |
+
+## US-19 — Applications filter
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-19.1 | Applications can be filtered by status | Pass | `dashboard.spec.ts` |
+| AC-19.2 | Applications can be filtered by submission date | Pass | `dashboard.spec.ts` |
+
+## US-20 — Application history dashboard
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-20.1 | History lists every submitted application with its status | Pass | `history.spec.ts` |
+| AC-20.2 | History can be narrowed to one status | Pass | `history.spec.ts` |
+
+## US-21 — Application analytics
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-21.1 | History shows applications submitted over the last 30 days | Pass | `history.spec.ts` |
+| AC-21.2 | Activity chart counts applications on the day they were submitted | Pass | `history.spec.ts` |
+
+## US-22 — Application status update notifications
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-22.1 | Interview invitation shows as a notification | Not built | `notifications.spec.ts` |
+| AC-22.2 | Opening a status notification shows the application | Not built | `notifications.spec.ts` |
+
+## US-23 — Application deadline reminders
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-23.1 | Posting can be given an application deadline | Not built | `notifications.spec.ts` |
+| AC-23.2 | Upcoming deadline shows as a reminder | Not built | `notifications.spec.ts` |
+
+## US-24 — New application notifications
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-24.1 | Recruiter header has a notifications button | Not built | `notifications.spec.ts` |
+| AC-24.2 | New application shows as a notification for the Recruiter | Not built | `notifications.spec.ts` |
+
+## US-25 — AI resume feedback
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-25.1 | Worker can ask for AI feedback on a resume | Not built | `ai-suggestions.spec.ts` |
+| AC-25.2 | AI feedback lists suggestions for improvement | Not built | `ai-suggestions.spec.ts` |
+
+## US-26 — AI job matching
+
+| ID | Criterion | Status | Test |
+|---|---|---|---|
+| AC-26.1 | Jobs page recommends postings for the Worker | Not built | `ai-suggestions.spec.ts` |
+| AC-26.2 | Each recommendation says why it matches the Worker | Not built | `ai-suggestions.spec.ts` |
+
 ## Open issues
 
 - **No resume when applying** (AC-05.1, AC-05.4, AC-08.4): *Apply Now* does not ask for a resume or check that the Worker has one.
@@ -194,7 +267,7 @@ npx playwright show-report
 
 ## Notes
 
-- The apply tests intercept the submit request, so they don't write to Supabase.
+- The apply tests intercept the submit request, so they don't write to Supabase. The history tests (US-20, US-21) answer the applications request with a fixed history the same way.
 - Not met and Not built tests are expected failures (`test.fail()`): each turns red once its feature works, as a reminder to remove the marker. Tests of features not built yet guess the button and page names, so adjust them to the real page when building the feature.
 - The issue tables are written by `.github/scripts/update-acceptance-issues.mjs`. A test is listed under the story its ID belongs to (AC-04.x under US-04), so a new test only needs the ID at the start of its title.
 - Each run of AC-A.1 and AC-A.2 creates a real user in Supabase; clear the `e2e+…@example.com` users from time to time.

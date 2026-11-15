@@ -21,7 +21,7 @@ npx playwright show-report
 
 `App/.env` needs `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and the test accounts
 `E2E_WORKER_EMAIL`, `E2E_WORKER_PASSWORD`, `E2E_WORKER_FIRST_NAME`, `E2E_WORKER_LAST_NAME`,
-`E2E_RECRUITER_EMAIL`, `E2E_RECRUITER_PASSWORD` (logins in #testing). On GitHub the same names are repository secrets. `ANTHROPIC_API_KEY` (optional) enables the AI cover letter and its test AC-13.2, which is skipped without it.
+`E2E_RECRUITER_EMAIL`, `E2E_RECRUITER_PASSWORD` (logins in #testing). On GitHub the same names are repository secrets. `GEMINI_API_KEY` (optional, free from Google AI Studio) enables the AI cover letter and its test AC-13.2, which is skipped without it.
 
 ## Sign-in and access control
 
@@ -172,7 +172,7 @@ npx playwright show-report
 | ID | Criterion | Status | Test |
 |---|---|---|---|
 | AC-13.1 | Job detail page offers to generate a cover letter | Pass | `cover-letter.spec.ts` |
-| AC-13.2 | Generated cover letter mentions the job title | Pass (needs `ANTHROPIC_API_KEY`, skipped without it) | `cover-letter.spec.ts` |
+| AC-13.2 | Generated cover letter mentions the job title | Pass (needs `GEMINI_API_KEY`, skipped without it) | `cover-letter.spec.ts` |
 
 ## US-14 — Candidate search
 

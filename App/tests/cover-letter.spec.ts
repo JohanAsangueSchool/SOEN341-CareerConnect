@@ -5,7 +5,7 @@ import { WORKER_STATE, openFirstJob } from './helpers';
 /**
  * US-13 — AI Cover Letter Generator (AC-13.1, AC-13.2)
  *
- * AC-13.2 asks Claude for a real letter, so it needs ANTHROPIC_API_KEY (in
+ * AC-13.2 asks Google Gemini for a real letter, so it needs GEMINI_API_KEY (in
  * App/.env locally, as a repository secret in CI) and is skipped without it.
  * It uses one of the shared Worker account's resumes.
  * See Documentation/Acceptance_Tests_Sprint_2.md.
@@ -25,7 +25,7 @@ test('AC-13.1 a job detail page offers to generate a cover letter', async ({ pag
 });
 
 test('AC-13.2 the generated cover letter mentions the job title', async ({ page }) => {
-    test.skip(!process.env.ANTHROPIC_API_KEY, 'Needs ANTHROPIC_API_KEY to call Claude.');
+    test.skip(!process.env.GEMINI_API_KEY, 'Needs GEMINI_API_KEY to call Gemini.');
     test.setTimeout(90_000);
 
     await openFirstJob(page);

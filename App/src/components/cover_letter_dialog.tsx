@@ -22,7 +22,7 @@ import { createClientSupabase } from '@/lib/supabase/client';
 
 type ResumeOption = { id: string; title: string };
 
-/** Writes a cover letter for a posting with Claude, from one of the Worker's resumes. */
+/** Writes a cover letter for a posting with Google Gemini, from one of the Worker's resumes. */
 export function CoverLetterDialog({ jobId, jobTitle }: { jobId: string; jobTitle: string }) {
     const [open, setOpen] = useState(false);
     const [resumes, setResumes] = useState<ResumeOption[]>();
@@ -108,9 +108,9 @@ export function CoverLetterDialog({ jobId, jobTitle }: { jobId: string; jobTitle
                                         <NativeSelect.Indicator />
                                     </NativeSelect.Root>
                                     <Field.HelperText>
-                                        Claude writes the letter from this resume and the posting.
-                                        It only uses what your resume says, so check it before
-                                        sending.
+                                        Google Gemini writes the letter from this resume and the
+                                        posting. It only uses what your resume says, so check it
+                                        before sending.
                                     </Field.HelperText>
                                 </Field.Root>
                             )}

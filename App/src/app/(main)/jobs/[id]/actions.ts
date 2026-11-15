@@ -1,6 +1,6 @@
 'use server';
 
-import { CLAUDE_MODEL, describeClaudeError, getClaude } from '@/lib/ai/claude';
+import { GEMINI_MODEL, blockedReason, describeGeminiError, getGemini } from '@/lib/ai/gemini';
 import { createServerSupabase } from '@/lib/supabase/server';
 
 export type CoverLetterResult = { letter: string } | { error: string };
@@ -89,8 +89,8 @@ export async function generateCoverLetter(
     jobId: string,
     resumeId: string,
 ): Promise<CoverLetterResult> {
-    const claude = getClaude();
-    if (!claude) return { error: 'AI cover letters are not available on this site yet.' };
+    const gemini = getGemini();
+    if (!gemini) return { error: 'AI cover letters are not available on this site yet.' };
 
     const supabase = await createServerSupabase();
     const { data: claims } = await supabase.auth.getClaims();
@@ -139,30 +139,20 @@ export async function generateCoverLetter(
     ].join('\n');
 
     try {
-        const response = await claude.beta.messages.create({
-            model: CLAUDE_MODEL,
-            max_tokens: 16000,
-            // A short, well-specified writing task: low effort keeps the wait short.
-            output_config: { effort: 'low' },
-            // If a safety classifier declines, the API retries on a fallback model.
-            betas: ['server-side-fallback-2026-07-01'],
-            fallbacks: 'default',
-            system: SYSTEM_PROMPT,
-            messages: [{ role: 'user', content: prompt }],
+        const response = await gemini.models.generateContent({
+            model: GEMINI_MODEL,
+            contents: prompt,
+            config: { systemInstruction: SYSTEM_PROMPT },
         });
 
-        if (response.stop_reason === 'refusal') {
+        if (blockedReason(response) === 'blocked') {
             return { error: 'A cover letter could not be written for this posting.' };
         }
 
-        const letter = response.content
-            .flatMap((block) => (block.type === 'text' ? [block.text] : []))
-            .join('')
-            .trim();
-
-        return letter ? { letter } : { error: describeClaudeError(null) };
+        const letter = response.text?.trim();
+        return letter ? { letter } : { error: describeGeminiError(null) };
     } catch (error) {
         console.error('Cover letter generation failed:', error);
-        return { error: describeClaudeError(error) };
+        return { error: describeGeminiError(error) };
     }
 }

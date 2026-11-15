@@ -11,6 +11,7 @@ import {
     FaFile,
     FaGaugeHigh,
     FaHouse,
+    FaUsers,
 } from 'react-icons/fa6';
 
 import { toaster } from '@/components/ui/toaster';
@@ -144,12 +145,21 @@ function MainLayoutHeader({
                     )}
 
                     {userProfile.account_type === 'Recruiter' && (
-                        <Tabs.Trigger value='/applications' asChild>
-                            <Link unstyled href='/applications'>
-                                <FaClipboardCheck />
-                                Applications
-                            </Link>
-                        </Tabs.Trigger>
+                        <>
+                            <Tabs.Trigger value='/applications' asChild>
+                                <Link unstyled href='/applications'>
+                                    <FaClipboardCheck />
+                                    Applications
+                                </Link>
+                            </Tabs.Trigger>
+
+                            <Tabs.Trigger value='/candidates' asChild>
+                                <Link unstyled href='/candidates'>
+                                    <FaUsers />
+                                    Candidates
+                                </Link>
+                            </Tabs.Trigger>
+                        </>
                     )}
                 </Tabs.List>
             </Tabs.Root>

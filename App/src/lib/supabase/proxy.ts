@@ -62,7 +62,10 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(new URL('/jobs', url));
     }
 
-    if (data?.account_type !== 'Recruiter' && url.pathname.startsWith('/dashboard')) {
+    if (
+        data?.account_type !== 'Recruiter' &&
+        ['/dashboard', '/candidates'].some((e) => url.pathname.startsWith(e))
+    ) {
         return NextResponse.redirect(new URL('/', url));
     }
 

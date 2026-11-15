@@ -1,6 +1,12 @@
-import { expect, test } from '@playwright/test';
+import { type Page, expect, test } from '@playwright/test';
 
-import { NOT_BUILT_TIMEOUT, RECRUITER_STATE, worker, workerApplicationCard } from './helpers';
+import {
+    NOT_BUILT_TIMEOUT,
+    RECRUITER_STATE,
+    WORKER_STATE,
+    worker,
+    workerApplicationCard,
+} from './helpers';
 
 /**
  * US-09 — Candidate Profile & Resume Viewer (AC-09.1, AC-09.2)
@@ -9,9 +15,10 @@ import { NOT_BUILT_TIMEOUT, RECRUITER_STATE, worker, workerApplicationCard } fro
  * US-15 — Favorite Candidates (AC-15.1, AC-15.2)
  *
  * AC-09.1 and AC-10.1 read the Recruiter's applications page and need the
- * Worker to have applied to one of the Recruiter's postings. The other tests
- * cover features that are not built yet and are expected failures: remove
- * test.fail() once a feature exists, adjusting the selectors if needed.
+ * Worker to have applied to one of the Recruiter's postings. AC-09.2 and
+ * AC-10.2 cover features that are not built yet and are expected failures.
+ * AC-14.x and AC-15.x search for the shared Worker and always leave them out
+ * of the Recruiter's favorites.
  * See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
@@ -19,7 +26,9 @@ test.use({ storageState: RECRUITER_STATE });
 
 const APPLICATION_STATUSES = ['Applied', 'Under Review', 'Interview', 'Offered', 'Rejected'];
 
-test('AC-09.1 a Recruiter sees the name and contact details of each applicant', async ({ page }) => {
+test('AC-09.1 a Recruiter sees the name and contact details of each applicant', async ({
+    page,
+}) => {
     await page.goto('/applications');
 
     const card = workerApplicationCard(page);
@@ -62,39 +71,110 @@ test('AC-10.2 a Recruiter can leave feedback on an application', async ({ page }
     });
 });
 
-test('AC-14.1 a Recruiter can open the candidate search page', async ({ page }) => {
-    test.fail();
+/** The candidate card for the shared Worker account. */
+function workerCandidateCard(page: Page) {
+    return page
+        .getByRole('heading', { name: worker.fullName, exact: true })
+        .locator('xpath=ancestor::div[.//a[starts-with(@href, "mailto:")]][1]');
+}
 
+/** Searches for the shared Worker on the candidate search page. */
+async function searchForWorker(page: Page) {
     await page.goto('/candidates');
+    await page.getByLabel('Search candidates').fill(worker.lastName);
+    await expect(workerCandidateCard(page)).toBeVisible();
+}
 
-    await expect(page.getByLabel('Search candidates')).toBeVisible({ timeout: NOT_BUILT_TIMEOUT });
+/** Makes sure the shared Worker is not one of the Recruiter's favorites. */
+async function startNotFavorite(page: Page) {
+    await searchForWorker(page);
+    const remove = workerCandidateCard(page).getByRole('button', { name: 'Remove from favorites' });
+    if (await remove.isVisible()) {
+        await remove.click();
+        await expect(
+            workerCandidateCard(page).getByRole('button', { name: 'Add to favorites' }),
+        ).toBeVisible();
+    }
+}
+
+test('AC-14.1 a Recruiter can open the candidate search page', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('header').getByRole('tab', { name: 'Candidates' }).click();
+
+    await expect(page).toHaveURL('/candidates');
+    await expect(page.getByLabel('Search candidates')).toBeVisible();
+    // With no search, every Worker is listed, the shared one included.
+    await expect(workerCandidateCard(page)).toBeVisible();
+    await expect(workerCandidateCard(page)).toContainText(worker.email);
 });
 
 test('AC-14.2 searching by name returns the matching candidate', async ({ page }) => {
-    test.fail();
+    await searchForWorker(page);
 
-    await page.goto('/candidates');
-    await page.getByLabel('Search candidates').fill(worker.lastName, { timeout: NOT_BUILT_TIMEOUT });
+    // Every result matches the search.
+    const names = page.getByRole('heading', { level: 2 });
+    for (const name of await names.allTextContents()) {
+        expect(name.toLowerCase()).toContain(worker.lastName.toLowerCase());
+    }
 
-    await expect(page.getByText(worker.fullName, { exact: true })).toBeVisible();
+    await page.getByLabel('Search candidates').fill('zzqx-no-such-candidate');
+    await expect(page.getByText('No candidates found')).toBeVisible();
 });
 
 test('AC-15.1 a Recruiter can add a candidate to their favorites', async ({ page }) => {
-    test.fail();
+    await startNotFavorite(page);
 
-    await page.goto('/candidates');
+    try {
+        await workerCandidateCard(page).getByRole('button', { name: 'Add to favorites' }).click();
+        await expect(
+            workerCandidateCard(page).getByRole('button', { name: 'Remove from favorites' }),
+        ).toBeVisible();
 
-    await expect(page.getByRole('button', { name: 'Add to favorites' }).first()).toBeVisible({
-        timeout: NOT_BUILT_TIMEOUT,
-    });
+        // Stored, not just shown.
+        await searchForWorker(page);
+        await expect(
+            workerCandidateCard(page).getByRole('button', { name: 'Remove from favorites' }),
+        ).toBeVisible();
+    } finally {
+        await startNotFavorite(page);
+    }
 });
 
 test('AC-15.2 favorite candidates are listed on their own page', async ({ page }) => {
-    test.fail();
+    await startNotFavorite(page);
+    await workerCandidateCard(page).getByRole('button', { name: 'Add to favorites' }).click();
+    await expect(
+        workerCandidateCard(page).getByRole('button', { name: 'Remove from favorites' }),
+    ).toBeVisible();
 
-    await page.goto('/candidates/favorites');
+    try {
+        await page.getByRole('link', { name: 'Favorites' }).click();
+        await expect(page).toHaveURL('/candidates/favorites');
+        await expect(page.getByRole('heading', { name: 'Favorite candidates' })).toBeVisible();
+        await expect(workerCandidateCard(page)).toContainText(worker.email);
 
-    await expect(page.getByRole('heading', { name: 'Favorite candidates' })).toBeVisible({
-        timeout: NOT_BUILT_TIMEOUT,
+        // Removing them here takes them off the list.
+        await workerCandidateCard(page)
+            .getByRole('button', { name: 'Remove from favorites' })
+            .click();
+        await expect(workerCandidateCard(page)).toHaveCount(0);
+        await page.reload();
+        await expect(page.getByRole('heading', { name: 'Favorite candidates' })).toBeVisible();
+        await expect(workerCandidateCard(page)).toHaveCount(0);
+    } finally {
+        await startNotFavorite(page);
+    }
+});
+
+test.describe('as a Worker', () => {
+    test.use({ storageState: WORKER_STATE });
+
+    test('AC-14.3 a Worker cannot open the candidate search page', async ({ page }) => {
+        await page.goto('/candidates');
+
+        await expect(page).toHaveURL('/');
+        await expect(page.locator('header').getByRole('tab', { name: 'Candidates' })).toHaveCount(
+            0,
+        );
     });
 });

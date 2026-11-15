@@ -7,7 +7,7 @@ Every criterion has an automated test in `App/tests/` (Playwright), which runs o
 
 **Status:** **Pass** = test passes · **Not met** = built but behaves differently · **Not built** = feature does not exist yet. Not met and Not built tests are expected failures (`test.fail()`).
 
-**Summary (103 criteria):** 76 Pass · 3 Not met · 24 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: US-07, US-09 – US-15 apart from AC-09.1, AC-10.1 and AC-10.3, and US-22 – US-26.
+**Summary (104 criteria):** 81 Pass · 3 Not met · 20 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: US-07, AC-09.2, AC-10.2, US-11 – US-13, and US-22 – US-26.
 
 ## Running the tests
 
@@ -178,15 +178,16 @@ npx playwright show-report
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-14.1 | Recruiter can open the candidate search page | Not built | `candidates.spec.ts` |
-| AC-14.2 | Searching by name returns the matching candidate | Not built | `candidates.spec.ts` |
+| AC-14.1 | Recruiter can open the candidate search page | Pass | `candidates.spec.ts` |
+| AC-14.2 | Searching by name returns the matching candidate | Pass | `candidates.spec.ts` |
+| AC-14.3 | Workers cannot open the candidate search page | Pass | `candidates.spec.ts` |
 
 ## US-15 — Favorite candidates
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-15.1 | Recruiter can add a candidate to their favorites | Not built | `candidates.spec.ts` |
-| AC-15.2 | Favorite candidates are listed on their own page | Not built | `candidates.spec.ts` |
+| AC-15.1 | Recruiter can add a candidate to their favorites | Pass | `candidates.spec.ts` |
+| AC-15.2 | Favorite candidates are listed on their own page | Pass | `candidates.spec.ts` |
 
 ## US-17 — Recruiter dashboard
 

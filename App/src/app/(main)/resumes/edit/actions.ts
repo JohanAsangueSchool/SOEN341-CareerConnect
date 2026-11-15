@@ -1,10 +1,11 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+
 import { createServerSupabase } from '@/lib/supabase/server';
 import { resumeSchemaType } from '@/utils/forms/resumes';
 import { validRequestStatus } from '@/utils/function';
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 
 export async function createResume(values: resumeSchemaType) {
     const supabase = await createServerSupabase();

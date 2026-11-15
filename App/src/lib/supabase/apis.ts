@@ -15,7 +15,9 @@ export async function getUserResumes(client: SupabaseClient) {
     const claims = await client.auth.getClaims();
     const { data, error, status } = await client
         .from('resumes')
-        .select(`id, title, summary, status, education, experience, skills, projects, updated_at`)
+        .select(
+            `id, title, summary, status, education, experience, skills, projects, file_path, file_name, updated_at`,
+        )
         .eq('user_id', claims?.data?.claims.sub)
         .order('updated_at', { ascending: false });
 

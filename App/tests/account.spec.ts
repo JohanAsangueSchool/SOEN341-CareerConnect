@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-import { NOT_BUILT_TIMEOUT, WORKER_STATE, avatarMenu, worker } from './helpers';
+import { WORKER_STATE, avatarMenu, worker } from './helpers';
 
 /**
  * US-01 — User Profile Management (AC-01.1 … AC-01.6)
- * AC-01.6 (change the avatar) is not built yet and is an expected failure.
+ * AC-01.6 uploads a real picture and removes it again afterwards.
  * See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
@@ -70,12 +70,35 @@ test('AC-01.5 an edited profile field is saved', async ({ page }) => {
     }
 });
 
+/** A 1×1 PNG. */
+const PNG = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+    'base64',
+);
+
 test('AC-01.6 a user can change their avatar picture', async ({ page }) => {
-    test.fail();
-
     await page.goto('/account');
+    const picture = page.locator('main main').getByRole('img', { name: 'Profile picture' });
 
-    await expect(page.getByRole('button', { name: 'Change picture' })).toBeVisible({
-        timeout: NOT_BUILT_TIMEOUT,
-    });
+    try {
+        await expect(page.getByRole('button', { name: 'Change picture' })).toBeVisible();
+        await page
+            .locator('input[type="file"]')
+            .setInputFiles({ name: 'avatar.png', mimeType: 'image/png', buffer: PNG });
+
+        await expect(page.getByText('Picture updated.')).toBeVisible();
+        await expect(picture).toHaveAttribute('src', /\/storage\/v1\/object\/public\/avatars\//);
+
+        // Saved on the profile, not just shown.
+        await page.reload();
+        await expect(picture).toBeVisible();
+    } finally {
+        // The account is shared and AC-01.3 expects the initials, so the
+        // picture is removed again.
+        const remove = page.getByRole('button', { name: 'Remove picture' });
+        if (await remove.isVisible()) {
+            await remove.click();
+            await expect(page.getByText('Picture removed.')).toBeVisible();
+        }
+    }
 });

@@ -11,17 +11,20 @@ import {
     Input,
     Link,
     Portal,
+    Spinner,
     Text,
 } from '@chakra-ui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Concert_One } from 'next/font/google';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaPencil } from 'react-icons/fa6';
 
 import { PasswordInput } from '@/components/ui/password-input';
 import { toaster } from '@/components/ui/toaster';
-import { useSetUserProfile, useUserProfile } from '@/contexts/user_profile';
+import { UserProfileType, useSetUserProfile, useUserProfile } from '@/contexts/user_profile';
+import { createClientSupabase } from '@/lib/supabase/client';
+import { AVATAR_TYPES, removeAvatar, uploadAvatar } from '@/lib/supabase/storage';
 import {
     accountFormSchema,
     accountFormSchemaType,
@@ -52,22 +55,12 @@ const concertOneFont = Concert_One({ subsets: ['latin', 'latin-ext'], weight: ['
 
 export default function AccountPage() {
     const userProfile = useUserProfile()!;
-    const { avatar_url, account_type, first_name, last_name } = userProfile;
+    const { account_type } = userProfile;
 
     return (
         <main className='m-12 flex w-full max-w-md flex-col gap-6 self-center'>
             <div className='mb-8 flex items-start justify-between gap-8'>
-                <div className='group relative size-40 cursor-pointer'>
-                    <Avatar.Root
-                        size='full'
-                        className='transition-all duration-300 group-hover:brightness-30'
-                    >
-                        <Avatar.Fallback textStyle='5xl' name={`${first_name} ${last_name}`} />
-                        {avatar_url && <Avatar.Image src={avatar_url} />}
-                    </Avatar.Root>
-
-                    <FaPencil className='absolute top-1/2 left-1/2 -translate-1/2 text-4xl text-white opacity-0 transition-all duration-300 group-hover:opacity-100' />
-                </div>
+                <AccountAvatar />
 
                 <div className='mt-8 flex flex-col items-end gap-2'>
                     <Text textStyle='5xl' style={concertOneFont.style}>
@@ -79,6 +72,101 @@ export default function AccountPage() {
 
             <AccountInformation />
         </main>
+    );
+}
+
+/** The profile picture. Clicking it picks a new picture; it can also be removed. */
+function AccountAvatar() {
+    const userProfile = useUserProfile()!;
+    const setUserProfile = useSetUserProfile();
+    const { avatar_url, first_name, last_name } = userProfile;
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [busy, setBusy] = useState(false);
+
+    async function run(action: () => Promise<UserProfileType>, success: string) {
+        setBusy(true);
+        try {
+            setUserProfile(await action());
+            toaster.create({
+                title: 'Success',
+                description: success,
+                type: 'success',
+                closable: true,
+            });
+        } catch (error) {
+            toaster.create({
+                title: 'Error',
+                description:
+                    error instanceof Error ? error.message : 'Failed to update the picture.',
+                type: 'error',
+                closable: true,
+            });
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    function onFileChosen(event: React.ChangeEvent<HTMLInputElement>) {
+        const file = event.target.files?.[0];
+        event.target.value = '';
+        if (!file) return;
+        run(() => uploadAvatar(createClientSupabase(), file, avatar_url), 'Picture updated.');
+    }
+
+    return (
+        <div className='flex flex-col items-center gap-2'>
+            <button
+                type='button'
+                aria-label='Change picture'
+                disabled={busy}
+                onClick={() => inputRef.current?.click()}
+                className='group relative size-40 cursor-pointer rounded-full disabled:cursor-wait'
+            >
+                <Avatar.Root
+                    size='full'
+                    className='transition-all duration-300 group-hover:brightness-30'
+                >
+                    <Avatar.Fallback textStyle='5xl' name={`${first_name} ${last_name}`} />
+                    {avatar_url && <Avatar.Image src={avatar_url} alt='Profile picture' />}
+                </Avatar.Root>
+
+                {busy ? (
+                    <Spinner
+                        size='xl'
+                        color='white'
+                        className='absolute top-1/2 left-1/2 -translate-1/2'
+                    />
+                ) : (
+                    <FaPencil className='absolute top-1/2 left-1/2 -translate-1/2 text-4xl text-white opacity-0 transition-all duration-300 group-hover:opacity-100' />
+                )}
+            </button>
+
+            <input
+                ref={inputRef}
+                type='file'
+                hidden
+                aria-label='Picture file'
+                accept={AVATAR_TYPES.join(',')}
+                onChange={onFileChosen}
+            />
+
+            {avatar_url && (
+                <Link asChild textStyle='sm' color='fg.muted'>
+                    <button
+                        type='button'
+                        disabled={busy}
+                        onClick={() =>
+                            run(
+                                () => removeAvatar(createClientSupabase(), avatar_url),
+                                'Picture removed.',
+                            )
+                        }
+                    >
+                        Remove picture
+                    </button>
+                </Link>
+            )}
+        </div>
     );
 }
 

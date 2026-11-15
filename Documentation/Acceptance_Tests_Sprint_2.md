@@ -7,7 +7,7 @@ Every criterion has an automated test in `App/tests/` (Playwright), which runs o
 
 **Status:** **Pass** = test passes · **Not met** = built but behaves differently · **Not built** = feature does not exist yet. Not met and Not built tests are expected failures (`test.fail()`).
 
-**Summary (104 criteria):** 81 Pass · 3 Not met · 20 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: US-07, AC-09.2, AC-10.2, US-11 – US-13, and US-22 – US-26.
+**Summary (104 criteria):** 83 Pass · 3 Not met · 18 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: US-07, AC-09.2, AC-10.2, US-11, US-12, and US-22 – US-26.
 
 ## Running the tests
 
@@ -21,7 +21,7 @@ npx playwright show-report
 
 `App/.env` needs `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and the test accounts
 `E2E_WORKER_EMAIL`, `E2E_WORKER_PASSWORD`, `E2E_WORKER_FIRST_NAME`, `E2E_WORKER_LAST_NAME`,
-`E2E_RECRUITER_EMAIL`, `E2E_RECRUITER_PASSWORD` (logins in #testing). On GitHub the same names are repository secrets.
+`E2E_RECRUITER_EMAIL`, `E2E_RECRUITER_PASSWORD` (logins in #testing). On GitHub the same names are repository secrets. `ANTHROPIC_API_KEY` (optional) enables the AI cover letter and its test AC-13.2, which is skipped without it.
 
 ## Sign-in and access control
 
@@ -171,8 +171,8 @@ npx playwright show-report
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-13.1 | Job detail page offers to generate a cover letter | Not built | `cover-letter.spec.ts` |
-| AC-13.2 | Generated cover letter mentions the job title | Not built | `cover-letter.spec.ts` |
+| AC-13.1 | Job detail page offers to generate a cover letter | Pass | `cover-letter.spec.ts` |
+| AC-13.2 | Generated cover letter mentions the job title | Pass (needs `ANTHROPIC_API_KEY`, skipped without it) | `cover-letter.spec.ts` |
 
 ## US-14 — Candidate search
 

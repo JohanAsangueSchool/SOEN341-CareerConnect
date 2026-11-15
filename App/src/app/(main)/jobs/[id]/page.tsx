@@ -13,6 +13,7 @@ import {
     FaPen,
 } from 'react-icons/fa6';
 
+import { CoverLetterDialog } from '@/components/cover_letter_dialog';
 import { SaveJobButton } from '@/components/save_job_button';
 import { toaster } from '@/components/ui/toaster';
 import { useUserProfile } from '@/contexts/user_profile';
@@ -240,6 +241,7 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                             </Button>
                         )}
                         {!isRecruiter && <SaveJobButton jobId={job.id} />}
+                        {!isRecruiter && <CoverLetterDialog jobId={job.id} jobTitle={job.title} />}
                     </Card.Footer>
                 </Card.Root>
             )}

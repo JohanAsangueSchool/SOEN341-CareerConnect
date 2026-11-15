@@ -7,7 +7,7 @@ Every criterion has an automated test in `App/tests/` (Playwright), which runs o
 
 **Status:** **Pass** = test passes · **Not met** = built but behaves differently · **Not built** = feature does not exist yet. Not met and Not built tests are expected failures (`test.fail()`).
 
-**Summary (102 criteria):** 69 Pass · 3 Not met · 30 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: AC-01.6, AC-02.16 – AC-02.18 (file upload and resume delete), US-04, US-07, US-09 – US-15 apart from AC-09.1, AC-10.1 and AC-10.3, and US-22 – US-26.
+**Summary (102 criteria):** 73 Pass · 3 Not met · 26 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: US-04, US-07, US-09 – US-15 apart from AC-09.1, AC-10.1 and AC-10.3, and US-22 – US-26.
 
 ## Running the tests
 
@@ -53,7 +53,7 @@ npx playwright show-report
 | AC-01.3 | Avatar shows initials when there is no picture | Pass | `account.spec.ts` |
 | AC-01.4 | Avatar menu shows the full name | Pass | `account.spec.ts` |
 | AC-01.5 | User can edit the profile and changes are saved | Pass | `account.spec.ts` |
-| AC-01.6 | User can upload or change the avatar picture | Not built | `account.spec.ts` |
+| AC-01.6 | User can upload or change the avatar picture | Pass | `account.spec.ts` |
 
 ## US-02 — Resume management
 
@@ -74,9 +74,9 @@ npx playwright show-report
 | AC-02.13 | Status change shows on the resume list | Pass | `resumes.spec.ts` |
 | AC-02.14 | Entry with no end month saves as ongoing | Pass | `resumes.spec.ts` |
 | AC-02.15 | Resume card shows its section counts | Pass | `resumes.spec.ts` |
-| AC-02.16 | Worker can upload a resume file (PDF/DOCX) | Not built | `resumes.spec.ts` |
-| AC-02.17 | Worker can replace an uploaded resume file | Not built | `resumes.spec.ts` |
-| AC-02.18 | Worker can delete a resume | Not built | `resumes.spec.ts` |
+| AC-02.16 | Worker can upload a resume file (PDF/DOCX) | Pass | `resumes.spec.ts` |
+| AC-02.17 | Worker can replace an uploaded resume file | Pass | `resumes.spec.ts` |
+| AC-02.18 | Worker can delete a resume | Pass | `resumes.spec.ts` |
 
 ## US-03 — Job search
 

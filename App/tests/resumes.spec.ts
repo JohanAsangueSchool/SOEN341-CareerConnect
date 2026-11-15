@@ -1,13 +1,6 @@
 import { type Page, expect, test } from '@playwright/test';
 
-import {
-    NOT_BUILT_TIMEOUT,
-    WORKER_STATE,
-    createResume,
-    resumeCard,
-    resumeSection,
-    uniqueTitle,
-} from './helpers';
+import { WORKER_STATE, createResume, resumeCard, resumeSection, uniqueTitle } from './helpers';
 
 /**
  * US-02 — Resume Management (AC-02.1 … AC-02.18)
@@ -15,8 +8,8 @@ import {
  * AC-02.3 (the "No resumes yet" empty state) answers the list request with an
  * empty list in the browser, because the shared account always has resumes.
  *
- * AC-02.16 … AC-02.18 cover file upload, replacement and deletion, none of
- * which are built yet, so they are expected failures.
+ * AC-02.16 … AC-02.18 upload, replace and delete real files and resumes; the
+ * resumes they make are deleted again so the shared account does not fill up.
  * See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
@@ -271,8 +264,11 @@ test('AC-02.15 a resume card shows its section counts', async ({ page }) => {
     await expect(page).toHaveURL('/resumes');
 
     // Each count sits next to its section icon: 1 education, 1 experience,
-    // 1 skill, 0 projects — in that order. The Edit button also has an icon.
-    const counts = resumeCard(page, title).locator('svg').locator('xpath=..').filter({ hasNotText: 'Edit' });
+    // 1 skill, 0 projects — in that order.
+    const counts = resumeCard(page, title)
+        .getByRole('group', { name: 'Section counts' })
+        .locator('svg')
+        .locator('xpath=..');
     await expect(counts).toHaveText(['1', '1', '1', '0']);
 });
 
@@ -290,32 +286,71 @@ test('AC-02.3 a Worker with no resumes sees an empty state', async ({ page }) =>
     await expect(page.getByText('No resumes yet')).toBeVisible();
 });
 
-test('AC-02.16 a Worker can upload a resume file', async ({ page }) => {
-    test.fail();
+/** A small PDF, enough for Storage to accept it as application/pdf. */
+function pdfFile(name: string) {
+    return { name, mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n%%EOF\n') };
+}
 
+/** Uploads a file through the page's "Upload resume" button. */
+async function uploadResume(page: Page, fileName: string) {
     await page.goto('/resumes');
+    // The first file input on the page belongs to "Upload resume"; the cards
+    // each have their own for "Attach file" / "Replace file".
+    await page.locator('input[type="file"]').first().setInputFiles(pdfFile(fileName));
+    await expect(page.getByText('Resume uploaded.')).toBeVisible();
+}
 
-    await expect(page.getByRole('button', { name: 'Upload resume' })).toBeVisible({
-        timeout: NOT_BUILT_TIMEOUT,
-    });
+/** Deletes a resume through its card, confirming in the dialog. */
+async function deleteResume(page: Page, title: string) {
+    await page.goto('/resumes');
+    await resumeCard(page, title).getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Delete resume' }).click();
+    await expect(page.getByText('Resume deleted.')).toBeVisible();
+}
+
+test('AC-02.16 a Worker can upload a resume file', async ({ page }) => {
+    const title = uniqueTitle('Uploaded');
+
+    try {
+        await uploadResume(page, `${title}.pdf`);
+
+        // The upload becomes a resume named after the file, with a link to it.
+        const card = resumeCard(page, title);
+        await expect(card).toContainText(`${title}.pdf`);
+        await expect(card.getByText('Draft', { exact: true })).toBeVisible();
+        await expect(card.getByRole('link', { name: 'View file' })).toHaveAttribute(
+            'href',
+            /\/storage\/v1\/object\/sign\/resume-files\//,
+        );
+    } finally {
+        await deleteResume(page, title);
+    }
 });
 
 test('AC-02.17 a Worker can replace an uploaded resume file', async ({ page }) => {
-    test.fail();
+    const title = uniqueTitle('Replaced');
 
-    await page.goto('/resumes');
+    try {
+        await uploadResume(page, `${title}.pdf`);
+        const card = resumeCard(page, title);
 
-    await expect(page.getByRole('button', { name: 'Replace file' }).first()).toBeVisible({
-        timeout: NOT_BUILT_TIMEOUT,
-    });
+        await card.locator('input[type="file"]').setInputFiles(pdfFile('replacement.pdf'));
+
+        await expect(page.getByText('Resume file replaced.')).toBeVisible();
+        await expect(card).toContainText('replacement.pdf');
+        await expect(card).not.toContainText(`${title}.pdf`);
+    } finally {
+        await deleteResume(page, title);
+    }
 });
 
 test('AC-02.18 a Worker can delete a resume', async ({ page }) => {
-    test.fail();
+    const title = uniqueTitle('Deleted');
+    await createResume(page, title);
 
-    await page.goto('/resumes');
+    await deleteResume(page, title);
 
-    await expect(page.getByRole('button', { name: 'Delete' }).first()).toBeVisible({
-        timeout: NOT_BUILT_TIMEOUT,
-    });
+    await expect(resumeCard(page, title)).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByRole('heading', { name: title, exact: true })).toHaveCount(0);
 });

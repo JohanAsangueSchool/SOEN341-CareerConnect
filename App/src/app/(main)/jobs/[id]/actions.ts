@@ -1,6 +1,6 @@
 'use server';
 
-import { GEMINI_MODEL, blockedReason, describeGeminiError, getGemini } from '@/lib/ai/gemini';
+import { blockedReason, describeGeminiError, generate, getGemini } from '@/lib/ai/gemini';
 import { resumeText } from '@/lib/ai/resume_text';
 import { createServerSupabase } from '@/lib/supabase/server';
 
@@ -79,8 +79,7 @@ export async function generateCoverLetter(
     ].join('\n');
 
     try {
-        const response = await gemini.models.generateContent({
-            model: GEMINI_MODEL,
+        const response = await generate(gemini, {
             contents: prompt,
             config: { systemInstruction: SYSTEM_PROMPT },
         });

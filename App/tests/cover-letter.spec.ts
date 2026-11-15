@@ -26,7 +26,7 @@ test('AC-13.1 a job detail page offers to generate a cover letter', async ({ pag
 
 test('AC-13.2 the generated cover letter mentions the job title', async ({ page }) => {
     test.skip(!process.env.GEMINI_API_KEY, 'Needs GEMINI_API_KEY to call Gemini.');
-    test.setTimeout(90_000);
+    test.setTimeout(150_000);
 
     await openFirstJob(page);
     const jobTitle = (await page.getByRole('heading', { level: 1 }).textContent())!.trim();
@@ -36,7 +36,8 @@ test('AC-13.2 the generated cover letter mentions the job title', async ({ page 
     await dialog.getByRole('button', { name: 'Generate' }).click();
 
     const letter = dialog.getByLabel('Cover letter');
-    await expect(letter).toBeVisible({ timeout: 60_000 });
+    // Up to three free-tier models may be tried, 25 s each.
+    await expect(letter).toBeVisible({ timeout: 90_000 });
     const text = await letter.inputValue();
     expect(text.toLowerCase()).toContain(jobTitle.toLowerCase());
     // A letter, not a one-line answer.

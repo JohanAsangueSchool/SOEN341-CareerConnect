@@ -3,7 +3,7 @@
 import type { Part } from '@google/genai';
 import * as z from 'zod';
 
-import { GEMINI_MODEL, blockedReason, describeGeminiError, getGemini } from '@/lib/ai/gemini';
+import { blockedReason, describeGeminiError, generate, getGemini } from '@/lib/ai/gemini';
 import { FeedbackSchema, ResumeFeedback } from '@/lib/ai/resume_feedback';
 import { resumeText } from '@/lib/ai/resume_text';
 import { createServerSupabase } from '@/lib/supabase/server';
@@ -85,8 +85,7 @@ export async function getResumeFeedback(resumeId: string): Promise<ResumeFeedbac
     });
 
     try {
-        const response = await gemini.models.generateContent({
-            model: GEMINI_MODEL,
+        const response = await generate(gemini, {
             contents: [{ role: 'user', parts }],
             config: {
                 systemInstruction: SYSTEM_PROMPT,

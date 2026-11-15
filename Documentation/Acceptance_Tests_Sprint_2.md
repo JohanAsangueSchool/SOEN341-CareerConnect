@@ -7,7 +7,7 @@ Every criterion has an automated test in `App/tests/` (Playwright), which runs o
 
 **Status:** **Pass** = test passes · **Not met** = built but behaves differently · **Not built** = feature does not exist yet. Not met and Not built tests are expected failures (`test.fail()`).
 
-**Summary (102 criteria):** 73 Pass · 3 Not met · 26 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: US-04, US-07, US-09 – US-15 apart from AC-09.1, AC-10.1 and AC-10.3, and US-22 – US-26.
+**Summary (103 criteria):** 76 Pass · 3 Not met · 24 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: US-07, US-09 – US-15 apart from AC-09.1, AC-10.1 and AC-10.3, and US-22 – US-26.
 
 ## Running the tests
 
@@ -127,8 +127,9 @@ npx playwright show-report
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-04.1 | Worker can save a job from its detail page | Not built | `saved-jobs.spec.ts` |
-| AC-04.2 | Saved jobs are listed on the Saved Jobs page | Not built | `saved-jobs.spec.ts` |
+| AC-04.1 | Worker can save a job from its detail page | Pass | `saved-jobs.spec.ts` |
+| AC-04.2 | Saved jobs are listed on the Saved Jobs page | Pass | `saved-jobs.spec.ts` |
+| AC-04.3 | Recruiters have no Saved Jobs page | Pass | `saved-jobs.spec.ts` |
 
 ## US-07 — Application status notifications
 

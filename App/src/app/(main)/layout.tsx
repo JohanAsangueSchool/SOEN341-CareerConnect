@@ -4,7 +4,14 @@ import { Avatar, Link, Menu, Portal, Spinner, Tabs } from '@chakra-ui/react';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { FaBriefcase, FaClipboardCheck, FaFile, FaGaugeHigh, FaHouse } from 'react-icons/fa6';
+import {
+    FaBookmark,
+    FaBriefcase,
+    FaClipboardCheck,
+    FaFile,
+    FaGaugeHigh,
+    FaHouse,
+} from 'react-icons/fa6';
 
 import { toaster } from '@/components/ui/toaster';
 import { UserProfileProvider, UserProfileType } from '@/contexts/user_profile';
@@ -124,6 +131,13 @@ function MainLayoutHeader({
                                 <Link unstyled href='/applications'>
                                     <FaClipboardCheck />
                                     My Applications
+                                </Link>
+                            </Tabs.Trigger>
+
+                            <Tabs.Trigger value='/saved-jobs' asChild>
+                                <Link unstyled href='/saved-jobs'>
+                                    <FaBookmark />
+                                    Saved Jobs
                                 </Link>
                             </Tabs.Trigger>
                         </>

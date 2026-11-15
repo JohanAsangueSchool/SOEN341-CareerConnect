@@ -13,6 +13,7 @@ import {
     FaPen,
 } from 'react-icons/fa6';
 
+import { SaveJobButton } from '@/components/save_job_button';
 import { toaster } from '@/components/ui/toaster';
 import { useUserProfile } from '@/contexts/user_profile';
 import { applyToJob, getJob, hasUserApplied } from '@/lib/supabase/apis';
@@ -214,7 +215,7 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                             {job.description || 'No description provided.'}
                         </Text>
                     </Card.Body>
-                    <Card.Footer borderTopWidth='1px' paddingTop={4}>
+                    <Card.Footer borderTopWidth='1px' paddingTop={4} gap={2}>
                         {isRecruiter ? (
                             isOwner && (
                                 <Link href={`/jobs/edit?id=${job.id}`}>
@@ -238,6 +239,7 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                                       : 'Apply Now'}
                             </Button>
                         )}
+                        {!isRecruiter && <SaveJobButton jobId={job.id} />}
                     </Card.Footer>
                 </Card.Root>
             )}

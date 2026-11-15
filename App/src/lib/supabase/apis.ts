@@ -245,3 +245,38 @@ export async function getRecruiterApplications(
         status,
     };
 }
+
+// Saved jobs: row security only returns the current Worker's own rows
+export async function isJobSaved(client: SupabaseClient, jobId: string) {
+    const { data, error, status } = await client
+        .from('saved_jobs')
+        .select('job_id')
+        .eq('job_id', jobId)
+        .maybeSingle();
+
+    return { data: !!data, error, status };
+}
+
+export async function saveJob(client: SupabaseClient, jobId: string) {
+    // user_id defaults to auth.uid() in the database
+    const { error, status } = await client.from('saved_jobs').insert({ job_id: jobId });
+
+    return { error, status };
+}
+
+export async function unsaveJob(client: SupabaseClient, jobId: string) {
+    const { error, status } = await client.from('saved_jobs').delete().eq('job_id', jobId);
+
+    return { error, status };
+}
+
+export async function getSavedJobs(client: SupabaseClient) {
+    const { data, error, status } = await client
+        .from('saved_jobs')
+        .select(
+            `job_id, created_at, jobs (id, title, company, location, category, job_type, salary_min, salary_max, status, created_at)`,
+        )
+        .order('created_at', { ascending: false });
+
+    return { data, error, status };
+}

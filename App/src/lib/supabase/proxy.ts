@@ -48,7 +48,10 @@ export async function updateSession(request: NextRequest) {
         .eq('id', user?.id)
         .single();
 
-    if (data?.account_type !== 'Worker' && ['/resumes'].some((e) => url.pathname.startsWith(e))) {
+    if (
+        data?.account_type !== 'Worker' &&
+        ['/resumes', '/saved-jobs'].some((e) => url.pathname.startsWith(e))
+    ) {
         return NextResponse.redirect(new URL('/', url));
     }
 

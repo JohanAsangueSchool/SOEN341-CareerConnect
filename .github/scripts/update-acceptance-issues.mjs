@@ -2,9 +2,13 @@
 // labels the issue with the overall status (LABELS) so it shows on the Issues
 // list.
 //
-// Usage: node update-acceptance-issues.mjs <playwright-results.json>
+// Usage: node update-acceptance-issues.mjs [--check] <playwright-results.json>
 // Needs GITHUB_TOKEN and GITHUB_REPOSITORY; RUN_URL and GITHUB_SHA are linked
 // in the table when set. Runs in CI after the acceptance tests on `main`.
+//
+// Every story must have at least MIN_TESTS tests; the script fails if one has
+// fewer. With --check it only does that check and touches no issues, so it
+// needs no token (CI runs it on every push and pull request).
 //
 // Each test title starts with the IDs it covers (e.g. "AC-03.2 …" or
 // "AC-08.1 / AC-08.3 …"). AC-NN.x belongs to US-NN, and STORY_ISSUES gives the
@@ -45,11 +49,15 @@ const STORY_ISSUES = {
 const START = '<!-- acceptance-tests:start -->';
 const END = '<!-- acceptance-tests:end -->';
 
-const { GITHUB_TOKEN, GITHUB_REPOSITORY, RUN_URL, GITHUB_SHA } = process.env;
-const resultsPath = process.argv[2];
+const MIN_TESTS = 2;
 
-if (!GITHUB_TOKEN || !GITHUB_REPOSITORY || !resultsPath) {
-    console.error('Needs GITHUB_TOKEN, GITHUB_REPOSITORY and a results file argument.');
+const { GITHUB_TOKEN, GITHUB_REPOSITORY, RUN_URL, GITHUB_SHA } = process.env;
+const args = process.argv.slice(2);
+const checkOnly = args.includes('--check');
+const resultsPath = args.find((arg) => arg !== '--check');
+
+if (!resultsPath || (!checkOnly && (!GITHUB_TOKEN || !GITHUB_REPOSITORY))) {
+    console.error('Needs a results file argument, and GITHUB_TOKEN and GITHUB_REPOSITORY unless --check.');
     process.exit(1);
 }
 
@@ -58,6 +66,7 @@ try {
     report = JSON.parse(readFileSync(resultsPath, 'utf8'));
 } catch {
     // The tests did not get far enough to write results; keep the last status.
+    // The test step has already failed, so there is nothing more to report.
     console.log(`No results at ${resultsPath}; issues left unchanged.`);
     process.exit(0);
 }
@@ -108,6 +117,29 @@ for (const { title, file, test } of collectTests({ suites: report.suites })) {
         if (!STORY_ISSUES[story]) continue;
         (rowsByStory[story] ??= []).push({ id, description, status: statusOf(test), file });
     }
+}
+
+/**
+ * Stories with fewer than MIN_TESTS tests. One test covering two IDs
+ * ("AC-18.2 / AC-18.3 …") adds two rows but counts once.
+ */
+function testCount(story) {
+    const rows = rowsByStory[story] ?? [];
+    return new Set(rows.map((row) => `${row.file}\n${row.description}`)).size;
+}
+
+const thinStories = Object.entries(STORY_ISSUES).filter(([story]) => testCount(story) < MIN_TESTS);
+for (const [story, issue] of thinStories) {
+    console.error(
+        `US-${story} (#${issue}) has ${testCount(story)} acceptance test(s); at least ${MIN_TESTS} are required.`,
+    );
+}
+
+if (checkOnly) {
+    if (thinStories.length === 0) {
+        console.log(`Every user story has at least ${MIN_TESTS} acceptance tests.`);
+    }
+    process.exit(thinStories.length > 0 ? 1 : 0);
 }
 
 /** Sorts AC-02.2 before AC-02.10. */
@@ -215,7 +247,7 @@ async function ensureLabels() {
     }
 }
 
-let failed = false;
+let failed = thinStories.length > 0;
 try {
     await ensureLabels();
 } catch (error) {
@@ -224,9 +256,6 @@ try {
 }
 for (const [story, issue] of Object.entries(STORY_ISSUES)) {
     const rows = rowsByStory[story] ?? [];
-    if (rows.length < 2) {
-        console.warn(`US-${story} (#${issue}) has ${rows.length} acceptance test(s); at least 2 are expected.`);
-    }
     if (rows.length === 0) continue;
 
     try {

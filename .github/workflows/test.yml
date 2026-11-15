@@ -103,6 +103,13 @@ jobs:
                   E2E_RECRUITER_PASSWORD: ${{ secrets.E2E_RECRUITER_PASSWORD }}
               run: npm test
 
+            # Every user story needs at least two acceptance tests. Needs no
+            # token, so it runs on pull requests too.
+            - name: Check every user story has at least two acceptance tests
+              if: ${{ !cancelled() }}
+              working-directory: .
+              run: node .github/scripts/update-acceptance-issues.mjs --check App/test-results/results.json
+
             - name: Upload Playwright report
               if: ${{ !cancelled() }}
               uses: actions/upload-artifact@v4

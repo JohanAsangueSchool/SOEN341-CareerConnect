@@ -1,13 +1,13 @@
 # Acceptance Tests — Sprint 2
 
 Each user story has acceptance criteria. A story is complete when its criteria pass.
-Every criterion has an automated test in `App/tests/` (Playwright), which runs on GitHub on every push and pull request.
+Every criterion has an automated test in `App/tests/` (Playwright), which runs on GitHub on every push and pull request. Every story has at least two tests; CI fails if one drops below that.
 
 **Live status:** after every push to `main`, CI writes each test's result into its user story issue (#13 – #27, #36, #46 – #55), so the issues always show the latest Pass / Fail. Each story also gets a label on the Issues list: `tests: passing`, `tests: partial` (some criteria not met or built yet), `tests: not built` or `tests: failing`. The statuses below are a snapshot.
 
 **Status:** **Pass** = test passes · **Not met** = built but behaves differently · **Not built** = feature does not exist yet. Not met and Not built tests are expected failures (`test.fail()`).
 
-**Summary (101 criteria):** 68 Pass · 3 Not met · 30 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: AC-01.6, AC-02.16 – AC-02.18 (file upload and resume delete), US-04, US-07, US-09 – US-15 apart from AC-09.1 and AC-10.1, and US-22 – US-26.
+**Summary (102 criteria):** 69 Pass · 3 Not met · 30 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: AC-01.6, AC-02.16 – AC-02.18 (file upload and resume delete), US-04, US-07, US-09 – US-15 apart from AC-09.1, AC-10.1 and AC-10.3, and US-22 – US-26.
 
 ## Running the tests
 
@@ -149,6 +149,7 @@ npx playwright show-report
 | ID | Criterion | Status | Test |
 |---|---|---|---|
 | AC-10.1 | Each application received can be set to any of the agreed statuses | Pass | `candidates.spec.ts` |
+| AC-10.3 | A status changed on the dashboard shows for the Worker | Pass | `dashboard.spec.ts` |
 | AC-10.2 | Recruiter can leave feedback on an application | Not built | `candidates.spec.ts` |
 
 ## US-11 — New job alerts

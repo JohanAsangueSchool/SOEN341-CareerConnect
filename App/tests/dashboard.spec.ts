@@ -6,7 +6,7 @@ import { RECRUITER_STATE, WORKER_STATE, uniqueTitle, worker } from './helpers';
  * US-17 — Recruiter Dashboard (AC-17.1 … AC-17.3)
  * US-18 — Posting Management (AC-18.1 … AC-18.4)
  * US-19 — Applications Filter and Candidates Review (AC-19.1, AC-19.2)
- * US-10 — Application Status Update (AC-10.1)
+ * US-10 — Application Status Update (AC-10.3)
  *
  * The tests run in order against one posting created in beforeAll, which the
  * Worker applies to for real so the dashboard has an application to show.
@@ -147,7 +147,7 @@ test('AC-18.1 a new posting can be started from the dashboard', async ({ page })
     await expect(page.getByRole('button', { name: 'Create Job Posting' })).toBeVisible();
 });
 
-test('AC-10.1 a status changed on the dashboard shows for the Worker', async ({
+test('AC-10.3 a status changed on the dashboard shows for the Worker', async ({
     page,
     browser,
 }) => {

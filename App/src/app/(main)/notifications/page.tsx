@@ -134,9 +134,11 @@ export default function NotificationsPage() {
                 <Spinner size='xl' className='self-center' />
             ) : notifications.length === 0 ? (
                 <Card.Root>
-                    <Card.Body align='center' padding={8}>
-                        <Heading textStyle='lg'>You're all caught up!</Heading>
-                        <Text color='fg.muted'>You don't have any notifications yet.</Text>
+                    <Card.Body padding={8}>
+                        <VStack align='center' gap={2}>
+                            <Heading textStyle='lg'>You're all caught up!</Heading>
+                            <Text color='fg.muted'>You don't have any notifications yet.</Text>
+                        </VStack>
                     </Card.Body>
                 </Card.Root>
             ) : (

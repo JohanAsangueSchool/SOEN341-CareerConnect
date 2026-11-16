@@ -10,6 +10,7 @@ import {
     FaBriefcase,
     FaClipboardCheck,
     FaFile,
+    FaFilter,
     FaGaugeHigh,
     FaHouse,
     FaUsers,
@@ -163,6 +164,13 @@ function MainLayoutHeader({
                                 <Link unstyled href='/saved-jobs'>
                                     <FaBookmark />
                                     Saved Jobs
+                                </Link>
+                            </Tabs.Trigger>
+
+                            <Tabs.Trigger value='/job-alerts' asChild>
+                                <Link unstyled href='/job-alerts'>
+                                    <FaFilter />
+                                    Job Alerts
                                 </Link>
                             </Tabs.Trigger>
                         </>

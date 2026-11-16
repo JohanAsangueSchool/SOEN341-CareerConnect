@@ -132,7 +132,7 @@ export default function JobAlertsPage() {
             <VStack align='start' gap={1}>
                 <Heading textStyle='3xl'>Job Alert Preferences</Heading>
                 <Text color='fg.muted'>
-                    CChoose the job categories you&apos;re interested in. We&apos;ll notify you when
+                    Choose the job categories you&apos;re interested in. We&apos;ll notify you when
                     a new job is posted in those categories.
                 </Text>
             </VStack>

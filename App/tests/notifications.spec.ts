@@ -1,10 +1,8 @@
 import { type Browser, type Page, expect, test } from '@playwright/test';
 
 import {
-    NOT_BUILT_TIMEOUT,
     RECRUITER_STATE,
     WORKER_STATE,
-    openFirstJob,
     openNotifications,
     uniqueTitle,
     worker,
@@ -19,7 +17,7 @@ import {
  * US-23 — Application Deadline Reminders (AC-23.1, AC-23.2)
  * US-24 — New Application Notifications (AC-24.1, AC-24.2)
  *
- * The US-07 and US-22 – US-24 tests run as one flow on a posting they create:
+ * The US-07, US-12 and US-22 – US-24 tests run as one flow on a posting they create:
  * the Recruiter posts it with a deadline two days away, the Worker saves it
  * (deadline reminder) and applies (new application notification), and the
  * Recruiter moves the application to Interview (status notification). The
@@ -29,9 +27,13 @@ import {
  * see it. The application and the notifications stay, as there is no way to
  * delete an application.
  *
- * US-11 and US-12 are not built yet: their tests are expected failures.
- * Remove test.fail() once a feature exists, adjusting the selectors if needed.
- * See Documentation/Acceptance_Tests_Sprint_2.md.
+ * The US-11 tests run as a second flow, in a field of interest only this run
+ * uses: the Recruiter posts a job in it, the Worker chooses it on Job Alerts,
+ * and a second posting in it shows as a notification. At the end the Worker
+ * clears the choice and the Recruiter closes both postings.
+ *
+ * US-12 (job expiry reminders) is the same feature as US-23, so its criteria
+ * share the US-23 tests. See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
 test.use({ storageState: WORKER_STATE });
@@ -46,6 +48,45 @@ function dateFromToday(days: number) {
 async function openAs(browser: Browser, storageState: string): Promise<Page> {
     const context = await browser.newContext({ storageState });
     return context.newPage();
+}
+
+/** Creates an Open posting as the Recruiter, with a deadline when given. */
+async function createPosting(
+    recruiter: Page,
+    { title, category, deadline }: { title: string; category: string; deadline?: string },
+) {
+    await recruiter.goto('/jobs/edit');
+    await recruiter.getByLabel('Title').fill(title);
+    await recruiter.getByLabel('Company').fill('E2E Test Company');
+    await recruiter.getByLabel('Status').selectOption('Open');
+    await recruiter.getByLabel('Job Type').selectOption('Contract');
+    await recruiter.getByLabel('Location').fill('Remote');
+    await recruiter.getByLabel('Category').fill(category);
+    if (deadline) await recruiter.getByLabel('Application Deadline').fill(deadline);
+    await recruiter.getByLabel('Description').fill('Created by the acceptance test suite.');
+    await recruiter.getByRole('button', { name: 'Create Job Posting' }).click();
+    await expect(recruiter).toHaveURL('/jobs');
+}
+
+/** Opens a posting from the Worker's job search and returns its id. */
+async function openPostingAsWorker(seeker: Page, title: string): Promise<string> {
+    await seeker.goto(`/jobs?keyword=${encodeURIComponent(title)}`);
+    await seeker
+        .getByRole('heading', { name: title, exact: true })
+        .locator('xpath=ancestor::div[.//a[starts-with(@href, "/jobs/")]][1]')
+        .getByRole('link', { name: 'View' })
+        .click();
+    await expect(seeker).toHaveURL(/\/jobs\/[^/?]+/);
+    return new URL(seeker.url()).pathname.split('/')[2];
+}
+
+/** Closes a posting as the Recruiter, so Workers no longer see it. */
+async function closePosting(recruiter: Page, jobId: string, title: string) {
+    await recruiter.goto(`/jobs/edit?id=${jobId}`);
+    await expect(recruiter.getByLabel('Title')).toHaveValue(title);
+    await recruiter.getByLabel('Status').selectOption('Closed');
+    await recruiter.getByRole('button', { name: 'Save Changes' }).click();
+    await expect(recruiter).toHaveURL('/jobs');
 }
 
 test('AC-07.1 the header has a notifications button', async ({ page }) => {
@@ -90,43 +131,21 @@ test.describe.serial('Notifications for a posting', () => {
                 await expect(seeker.getByRole('button', { name: 'Save job' })).toBeVisible();
             }
 
-            // Close it, so Workers no longer see it.
-            await recruiter.goto(`/jobs/edit?id=${jobId}`);
-            await expect(recruiter.getByLabel('Title')).toHaveValue(title);
-            await recruiter.getByLabel('Status').selectOption('Closed');
-            await recruiter.getByRole('button', { name: 'Save Changes' }).click();
-            await expect(recruiter).toHaveURL('/jobs');
+            await closePosting(recruiter, jobId, title);
         }
         await recruiter.context().close();
         await seeker.context().close();
     });
 
-    test('AC-23.1 a posting can be given an application deadline', async () => {
-        await recruiter.goto('/jobs/edit');
-        await recruiter.getByLabel('Title').fill(title);
-        await recruiter.getByLabel('Company').fill('E2E Test Company');
-        await recruiter.getByLabel('Status').selectOption('Open');
-        await recruiter.getByLabel('Job Type').selectOption('Contract');
-        await recruiter.getByLabel('Location').fill('Remote');
-        await recruiter.getByLabel('Category').fill('Software Engineering');
-        await recruiter.getByLabel('Application Deadline').fill(deadline);
-        await recruiter.getByLabel('Description').fill('Created by the acceptance test suite.');
-        await recruiter.getByRole('button', { name: 'Create Job Posting' }).click();
-        await expect(recruiter).toHaveURL('/jobs');
+    test('AC-23.1 / AC-12.1 a posting can be given an application deadline', async () => {
+        await createPosting(recruiter, { title, category: 'Software Engineering', deadline });
 
         // The Worker sees the deadline on the posting.
-        await seeker.goto(`/jobs?keyword=${encodeURIComponent(title)}`);
-        await seeker
-            .getByRole('heading', { name: title, exact: true })
-            .locator('xpath=ancestor::div[.//a[starts-with(@href, "/jobs/")]][1]')
-            .getByRole('link', { name: 'View' })
-            .click();
-        await expect(seeker).toHaveURL(/\/jobs\/[^/?]+/);
-        jobId = new URL(seeker.url()).pathname.split('/')[2];
+        jobId = await openPostingAsWorker(seeker, title);
         await expect(seeker.getByText(/^Application deadline /)).toBeVisible();
     });
 
-    test('AC-23.2 an upcoming application deadline shows as a reminder', async () => {
+    test('AC-23.2 / AC-12.2 an upcoming application deadline shows as a reminder', async () => {
         await seeker.goto(`/jobs/${jobId}`);
         await seeker.getByRole('button', { name: 'Save job' }).click();
         await expect(seeker.getByRole('button', { name: 'Saved', exact: true })).toBeVisible();
@@ -186,34 +205,65 @@ test.describe.serial('Notifications for a posting', () => {
     });
 });
 
-test('AC-11.1 a Worker can choose fields of interest for job alerts', async ({ page }) => {
-    test.fail();
+test.describe.serial('Job alerts for a field of interest', () => {
+    // A field only this run uses, so the alert can only come from this flow.
+    const category = uniqueTitle('Alert field');
+    const firstTitle = uniqueTitle('Alert posting');
+    const alertTitle = `${firstTitle} matching`;
+    const postings: { id: string; title: string }[] = [];
+    let recruiter: Page;
+    let seeker: Page;
 
-    await page.goto('/account');
+    test.beforeAll(async ({ browser }) => {
+        recruiter = await openAs(browser, RECRUITER_STATE);
+        seeker = await openAs(browser, WORKER_STATE);
+    });
 
-    await expect(page.getByLabel('Fields of interest')).toBeVisible({ timeout: NOT_BUILT_TIMEOUT });
-});
+    test.afterAll(async () => {
+        // Clear the choice while the field is still listed (only fields of
+        // Open postings are), then close the postings.
+        if (postings.length > 0) {
+            await seeker.goto('/job-alerts');
+            const field = seeker.getByRole('checkbox', { name: category });
+            if (await field.isChecked({ timeout: 10_000 }).catch(() => false)) {
+                // Controlled checkbox: it changes once the choice is saved.
+                await field.click();
+                await expect(field).not.toBeChecked();
+                await expect(field).toBeEnabled();
+            }
+        }
+        for (const posting of postings) await closePosting(recruiter, posting.id, posting.title);
+        await recruiter.context().close();
+        await seeker.context().close();
+    });
 
-test('AC-11.2 a new posting in a chosen field shows as a notification', async ({ page }) => {
-    test.fail();
+    test('AC-11.1 a Worker can choose fields of interest for job alerts', async () => {
+        await createPosting(recruiter, { title: firstTitle, category });
+        postings.push({ id: await openPostingAsWorker(seeker, firstTitle), title: firstTitle });
 
-    const list = await openNotifications(page);
+        await seeker.goto('/job-alerts');
+        const field = seeker.getByRole('checkbox', { name: category });
+        // Controlled checkbox: it changes once the choice is saved.
+        await field.click();
+        await expect(field).toBeChecked();
+        // Saving disables the choices until it is done.
+        await expect(field).toBeEnabled();
 
-    await expect(list.getByText(/new job/i).first()).toBeVisible({ timeout: NOT_BUILT_TIMEOUT });
-});
+        // The choice is saved.
+        await seeker.reload();
+        await expect(seeker.getByRole('checkbox', { name: category })).toBeChecked();
+    });
 
-test('AC-12.1 a job posting shows its application deadline', async ({ page }) => {
-    test.fail();
+    test('AC-11.2 a new posting in a chosen field shows as a notification', async () => {
+        await createPosting(recruiter, { title: alertTitle, category });
+        postings.push({ id: await openPostingAsWorker(seeker, alertTitle), title: alertTitle });
 
-    await openFirstJob(page);
-
-    await expect(page.getByText(/deadline/i).first()).toBeVisible({ timeout: NOT_BUILT_TIMEOUT });
-});
-
-test('AC-12.2 a saved job about to expire shows as a notification', async ({ page }) => {
-    test.fail();
-
-    const list = await openNotifications(page);
-
-    await expect(list.getByText(/expires/i).first()).toBeVisible({ timeout: NOT_BUILT_TIMEOUT });
+        const list = await openNotifications(seeker);
+        await expect(
+            list
+                .getByRole('listitem')
+                .filter({ hasText: alertTitle })
+                .filter({ hasText: 'New job matching your interests' }),
+        ).toContainText(`has been posted in ${category}.`);
+    });
 });

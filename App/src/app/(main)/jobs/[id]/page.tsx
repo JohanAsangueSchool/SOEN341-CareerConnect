@@ -224,8 +224,7 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                                     }
                                 >
                                     <FaCalendarXmark />
-                                    Application application_deadline{' '}
-                                    {formatDeadline(job.application_deadline)}
+                                    Application deadline {formatDeadline(job.application_deadline)}
                                 </HStack>
                             )}
                         </HStack>

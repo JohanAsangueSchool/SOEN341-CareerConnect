@@ -125,7 +125,9 @@ test('AC-06.1 the Worker sees each application with the posting it was for', asy
     await page.goto('/applications');
 
     // Requires the Worker account to have applied to at least one posting.
-    const cards = page.getByText('Application status').locator('xpath=ancestor::div[.//h2][1]');
+    const cards = page
+        .getByText('Application status', { exact: true })
+        .locator('xpath=ancestor::div[.//h2][1]');
     await expect(cards.first()).toBeVisible();
 
     for (let i = 0; i < (await cards.count()); i++) {
@@ -140,7 +142,9 @@ test('AC-06.1 the Worker sees each application with the posting it was for', asy
 test('AC-06.2 each application shows a status from the agreed list', async ({ page }) => {
     await page.goto('/applications');
 
-    const badges = page.getByText('Application status').locator('xpath=following-sibling::*[1]');
+    const badges = page
+        .getByText('Application status', { exact: true })
+        .locator('xpath=following-sibling::*[1]');
     await expect(badges.first()).toBeVisible();
 
     const allowed = ['Applied', 'Under Review', 'Interview', 'Offered', 'Rejected'];

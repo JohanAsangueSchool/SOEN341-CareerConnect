@@ -17,6 +17,13 @@ export const jobSchema = z
         status: JobStatusEnum,
         salary_min: salarySchema,
         salary_max: salarySchema,
+        application_deadline: z
+            .string()
+            .min(1, 'Application deadline is required.')
+            .refine(
+                (value) => !Number.isNaN(Date.parse(value)),
+                'Please enter a valid application deadline.',
+            ),
         description: z.string().trim(),
     })
     .refine(
@@ -28,3 +35,4 @@ export const jobSchema = z
 export type jobSchemaType = z.infer<typeof jobSchema>;
 
 export type jobSchemaInputType = z.input<typeof jobSchema>;
+

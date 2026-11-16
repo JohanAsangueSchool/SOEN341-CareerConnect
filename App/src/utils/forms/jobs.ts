@@ -25,7 +25,6 @@ export const jobSchema = z
                 'Please enter a valid application deadline.',
             ),
         description: z.string().trim(),
-        description: z.string().trim(),
     })
     .refine(
         (job) =>

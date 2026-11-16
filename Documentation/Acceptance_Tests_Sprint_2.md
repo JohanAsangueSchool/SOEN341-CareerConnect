@@ -7,7 +7,7 @@ Every criterion has an automated test in `App/tests/` (Playwright), which runs o
 
 **Status:** **Pass** = test passes · **Not met** = built but behaves differently · **Not built** = feature does not exist yet. Not met and Not built tests are expected failures (`test.fail()`).
 
-**Summary (102 criteria):** 73 Pass · 3 Not met · 26 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: US-04, US-07, US-09 – US-15 apart from AC-09.1, AC-10.1 and AC-10.3, and US-22 – US-26.
+**Summary (105 criteria):** 86 Pass · 3 Not met · 16 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: US-07, AC-09.2, AC-10.2, US-11, US-12, US-22 – US-24 and US-26.
 
 ## Running the tests
 
@@ -21,7 +21,7 @@ npx playwright show-report
 
 `App/.env` needs `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and the test accounts
 `E2E_WORKER_EMAIL`, `E2E_WORKER_PASSWORD`, `E2E_WORKER_FIRST_NAME`, `E2E_WORKER_LAST_NAME`,
-`E2E_RECRUITER_EMAIL`, `E2E_RECRUITER_PASSWORD` (logins in #testing). On GitHub the same names are repository secrets.
+`E2E_RECRUITER_EMAIL`, `E2E_RECRUITER_PASSWORD` (logins in #testing). On GitHub the same names are repository secrets. `GEMINI_API_KEY` (optional, free from Google AI Studio) enables the AI features (cover letter, resume feedback); their tests AC-13.2, AC-25.2 and AC-25.3 are skipped without it.
 
 ## Sign-in and access control
 
@@ -127,8 +127,9 @@ npx playwright show-report
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-04.1 | Worker can save a job from its detail page | Not built | `saved-jobs.spec.ts` |
-| AC-04.2 | Saved jobs are listed on the Saved Jobs page | Not built | `saved-jobs.spec.ts` |
+| AC-04.1 | Worker can save a job from its detail page | Pass | `saved-jobs.spec.ts` |
+| AC-04.2 | Saved jobs are listed on the Saved Jobs page | Pass | `saved-jobs.spec.ts` |
+| AC-04.3 | Recruiters have no Saved Jobs page | Pass | `saved-jobs.spec.ts` |
 
 ## US-07 — Application status notifications
 
@@ -170,22 +171,23 @@ npx playwright show-report
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-13.1 | Job detail page offers to generate a cover letter | Not built | `cover-letter.spec.ts` |
-| AC-13.2 | Generated cover letter mentions the job title | Not built | `cover-letter.spec.ts` |
+| AC-13.1 | Job detail page offers to generate a cover letter | Pass | `cover-letter.spec.ts` |
+| AC-13.2 | Generated cover letter mentions the job title | Pass (needs `GEMINI_API_KEY`, skipped without it) | `cover-letter.spec.ts` |
 
 ## US-14 — Candidate search
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-14.1 | Recruiter can open the candidate search page | Not built | `candidates.spec.ts` |
-| AC-14.2 | Searching by name returns the matching candidate | Not built | `candidates.spec.ts` |
+| AC-14.1 | Recruiter can open the candidate search page | Pass | `candidates.spec.ts` |
+| AC-14.2 | Searching by name returns the matching candidate | Pass | `candidates.spec.ts` |
+| AC-14.3 | Workers cannot open the candidate search page | Pass | `candidates.spec.ts` |
 
 ## US-15 — Favorite candidates
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-15.1 | Recruiter can add a candidate to their favorites | Not built | `candidates.spec.ts` |
-| AC-15.2 | Favorite candidates are listed on their own page | Not built | `candidates.spec.ts` |
+| AC-15.1 | Recruiter can add a candidate to their favorites | Pass | `candidates.spec.ts` |
+| AC-15.2 | Favorite candidates are listed on their own page | Pass | `candidates.spec.ts` |
 
 ## US-17 — Recruiter dashboard
 
@@ -250,8 +252,9 @@ npx playwright show-report
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-25.1 | Worker can ask for AI feedback on a resume | Not built | `ai-suggestions.spec.ts` |
-| AC-25.2 | AI feedback lists suggestions for improvement | Not built | `ai-suggestions.spec.ts` |
+| AC-25.1 | Worker can ask for AI feedback on a resume | Pass | `ai-suggestions.spec.ts` |
+| AC-25.2 | AI feedback lists suggestions for improvement | Pass (needs `GEMINI_API_KEY`, skipped without it) | `ai-suggestions.spec.ts` |
+| AC-25.3 | An uploaded PDF resume is reviewed from the file | Pass (needs `GEMINI_API_KEY`, skipped without it) | `ai-suggestions.spec.ts` |
 
 ## US-26 — AI job matching
 

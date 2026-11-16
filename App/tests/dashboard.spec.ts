@@ -133,7 +133,7 @@ test('AC-17.3 a Worker cannot open the dashboard', async ({ browser }) => {
     await page.goto('/dashboard');
 
     await expect(page).toHaveURL('/');
-    await expect(page.locator('header').getByRole('tab', { name: 'Jobs' })).toBeVisible();
+    await expect(page.locator('header').getByRole('tab', { name: 'Jobs', exact: true })).toBeVisible();
     await expect(page.locator('header').getByRole('tab', { name: 'Dashboard' })).toHaveCount(0);
     await page.context().close();
 });

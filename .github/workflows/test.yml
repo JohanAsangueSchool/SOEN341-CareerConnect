@@ -101,6 +101,8 @@ jobs:
                   E2E_WORKER_LAST_NAME: ${{ secrets.E2E_WORKER_LAST_NAME }}
                   E2E_RECRUITER_EMAIL: ${{ secrets.E2E_RECRUITER_EMAIL }}
                   E2E_RECRUITER_PASSWORD: ${{ secrets.E2E_RECRUITER_PASSWORD }}
+                  # The AI features call Google Gemini (free tier); their tests are skipped without it.
+                  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
               run: npm test
 
             # Every user story needs at least two acceptance tests. Needs no

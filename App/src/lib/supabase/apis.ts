@@ -245,3 +245,82 @@ export async function getRecruiterApplications(
         status,
     };
 }
+
+// Saved jobs: row security only returns the current Worker's own rows
+export async function isJobSaved(client: SupabaseClient, jobId: string) {
+    const { data, error, status } = await client
+        .from('saved_jobs')
+        .select('job_id')
+        .eq('job_id', jobId)
+        .maybeSingle();
+
+    return { data: !!data, error, status };
+}
+
+export async function saveJob(client: SupabaseClient, jobId: string) {
+    // user_id defaults to auth.uid() in the database
+    const { error, status } = await client.from('saved_jobs').insert({ job_id: jobId });
+
+    return { error, status };
+}
+
+export async function unsaveJob(client: SupabaseClient, jobId: string) {
+    const { error, status } = await client.from('saved_jobs').delete().eq('job_id', jobId);
+
+    return { error, status };
+}
+
+export async function getSavedJobs(client: SupabaseClient) {
+    const { data, error, status } = await client
+        .from('saved_jobs')
+        .select(
+            `job_id, created_at, jobs (id, title, company, location, category, job_type, salary_min, salary_max, status, created_at)`,
+        )
+        .order('created_at', { ascending: false });
+
+    return { data, error, status };
+}
+
+export type CandidateType = {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    postal_code: string;
+    avatar_url: string | null;
+    skills: string[];
+    is_favorite: boolean;
+};
+
+// Workers matching `search` by name, email or resume skill; only Recruiters get results
+export async function searchCandidates(
+    client: SupabaseClient,
+    search: string,
+    onlyFavorites = false,
+) {
+    const { data, error, status } = await client.rpc('search_candidates', {
+        search,
+        only_favorites: onlyFavorites,
+    });
+
+    return { data: data as CandidateType[] | null, error, status };
+}
+
+export async function addFavoriteCandidate(client: SupabaseClient, candidateId: string) {
+    // recruiter_id defaults to auth.uid() in the database
+    const { error, status } = await client
+        .from('favorite_candidates')
+        .insert({ candidate_id: candidateId });
+
+    return { error, status };
+}
+
+export async function removeFavoriteCandidate(client: SupabaseClient, candidateId: string) {
+    const { error, status } = await client
+        .from('favorite_candidates')
+        .delete()
+        .eq('candidate_id', candidateId);
+
+    return { error, status };
+}

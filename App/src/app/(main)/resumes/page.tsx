@@ -29,6 +29,7 @@ import {
     FaUpload,
 } from 'react-icons/fa6';
 
+import { ResumeFeedbackDialog } from '@/components/resume_feedback_dialog';
 import { toaster } from '@/components/ui/toaster';
 import { getUserResumes } from '@/lib/supabase/apis';
 import { createClientSupabase } from '@/lib/supabase/client';
@@ -310,6 +311,7 @@ function ResumeCard({
             </Card.Body>
             <Card.Footer justifyContent='flex-end' flexWrap='wrap'>
                 <DeleteResumeButton resume={resume} onDeleted={onChange} />
+                <ResumeFeedbackDialog resumeId={resume.id} title={resume.title} />
                 <FileButton
                     variant='outline'
                     size='sm'

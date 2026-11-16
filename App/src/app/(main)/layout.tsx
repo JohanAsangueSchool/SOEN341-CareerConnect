@@ -4,7 +4,15 @@ import { Avatar, Link, Menu, Portal, Spinner, Tabs } from '@chakra-ui/react';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { FaBriefcase, FaClipboardCheck, FaFile, FaGaugeHigh, FaHouse } from 'react-icons/fa6';
+import {
+    FaBookmark,
+    FaBriefcase,
+    FaClipboardCheck,
+    FaFile,
+    FaGaugeHigh,
+    FaHouse,
+    FaUsers,
+} from 'react-icons/fa6';
 
 import { toaster } from '@/components/ui/toaster';
 import { UserProfileProvider, UserProfileType } from '@/contexts/user_profile';
@@ -126,16 +134,32 @@ function MainLayoutHeader({
                                     My Applications
                                 </Link>
                             </Tabs.Trigger>
+
+                            <Tabs.Trigger value='/saved-jobs' asChild>
+                                <Link unstyled href='/saved-jobs'>
+                                    <FaBookmark />
+                                    Saved Jobs
+                                </Link>
+                            </Tabs.Trigger>
                         </>
                     )}
 
                     {userProfile.account_type === 'Recruiter' && (
-                        <Tabs.Trigger value='/applications' asChild>
-                            <Link unstyled href='/applications'>
-                                <FaClipboardCheck />
-                                Applications
-                            </Link>
-                        </Tabs.Trigger>
+                        <>
+                            <Tabs.Trigger value='/applications' asChild>
+                                <Link unstyled href='/applications'>
+                                    <FaClipboardCheck />
+                                    Applications
+                                </Link>
+                            </Tabs.Trigger>
+
+                            <Tabs.Trigger value='/candidates' asChild>
+                                <Link unstyled href='/candidates'>
+                                    <FaUsers />
+                                    Candidates
+                                </Link>
+                            </Tabs.Trigger>
+                        </>
                     )}
                 </Tabs.List>
             </Tabs.Root>

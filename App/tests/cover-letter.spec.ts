@@ -1,35 +1,45 @@
 import { expect, test } from '@playwright/test';
 
-import { NOT_BUILT_TIMEOUT, WORKER_STATE, openFirstJob } from './helpers';
+import { WORKER_STATE, openFirstJob } from './helpers';
 
 /**
  * US-13 — AI Cover Letter Generator (AC-13.1, AC-13.2)
  *
- * Not built yet: both tests are expected failures. Remove test.fail() once the
- * feature exists, adjusting the selectors to the real page if needed.
+ * AC-13.2 asks Google Gemini for a real letter, so it needs GEMINI_API_KEY (in
+ * App/.env locally, as a repository secret in CI) and is skipped without it.
+ * It uses one of the shared Worker account's resumes.
  * See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
 test.use({ storageState: WORKER_STATE });
 
 test('AC-13.1 a job detail page offers to generate a cover letter', async ({ page }) => {
-    test.fail();
-
     await openFirstJob(page);
 
-    await expect(page.getByRole('button', { name: 'Generate cover letter' })).toBeVisible({
-        timeout: NOT_BUILT_TIMEOUT,
-    });
+    await page.getByRole('button', { name: 'Generate cover letter' }).click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByRole('heading', { name: /^Cover letter for / })).toBeVisible();
+    await expect(dialog.getByLabel('Resume')).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Generate' })).toBeEnabled();
 });
 
 test('AC-13.2 the generated cover letter mentions the job title', async ({ page }) => {
-    test.fail();
+    test.skip(!process.env.GEMINI_API_KEY, 'Needs GEMINI_API_KEY to call Gemini.');
+    test.setTimeout(150_000);
 
     await openFirstJob(page);
-    const jobTitle = await page.getByRole('heading').first().innerText();
-    await page
-        .getByRole('button', { name: 'Generate cover letter' })
-        .click({ timeout: NOT_BUILT_TIMEOUT });
+    const jobTitle = (await page.getByRole('heading', { level: 1 }).textContent())!.trim();
 
-    await expect(page.getByLabel('Cover letter')).toContainText(jobTitle, { timeout: 30_000 });
+    await page.getByRole('button', { name: 'Generate cover letter' }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('button', { name: 'Generate' }).click();
+
+    const letter = dialog.getByLabel('Cover letter');
+    // Up to three free-tier models may be tried, 25 s each.
+    await expect(letter).toBeVisible({ timeout: 90_000 });
+    const text = await letter.inputValue();
+    expect(text.toLowerCase()).toContain(jobTitle.toLowerCase());
+    // A letter, not a one-line answer.
+    expect(text.split(/\s+/).length).toBeGreaterThan(80);
 });

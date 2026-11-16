@@ -24,7 +24,7 @@ Feature development. Notify job seekers when the status of one of their applicat
 
 **Time Spent**
 
-_to fill in_
+2h
 
 **Responsible Person:** Johan Asangue Tchoupa
 
@@ -49,7 +49,7 @@ Feature development. Let recruiters set an application deadline on a posting, an
 
 **Time Spent**
 
-_to fill in_
+2h
 
 **Responsible Person:** Johan Asangue Tchoupa
 
@@ -75,6 +75,6 @@ Feature development. Recommend open job postings to job seekers based on their r
 
 **Time Spent**
 
-_to fill in_
+3h
 
 **Responsible Person:** Johan Asangue Tchoupa

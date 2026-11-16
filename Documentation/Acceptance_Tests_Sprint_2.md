@@ -5,9 +5,9 @@ Every criterion has an automated test in `App/tests/` (Playwright), which runs o
 
 **Live status:** after every push to `main`, CI writes each test's result into its user story issue (#13 – #27, #36, #46 – #55), so the issues always show the latest Pass / Fail. Each story also gets a label on the Issues list: `tests: passing`, `tests: partial` (some criteria not met or built yet), `tests: not built` or `tests: failing`. The statuses below are a snapshot.
 
-**Status:** **Pass** = test passes · **Not met** = built but behaves differently · **Not built** = feature does not exist yet. Not met and Not built tests are expected failures (`test.fail()`).
+**Status:** **Pass** = test passes · **Built, not run yet** = feature and test written, waiting for the first CI run · **Not met** = built but behaves differently · **Not built** = feature does not exist yet. Not met and Not built tests are expected failures (`test.fail()`).
 
-**Summary (105 criteria):** 86 Pass · 3 Not met · 16 Not built. Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: US-07, AC-09.2, AC-10.2, US-11, US-12, US-22 – US-24 and US-26.
+**Summary (105 criteria):** 86 Pass · 10 Built, not run yet · 3 Not met · 6 Not built. Built, not run yet: US-07, US-22 – US-24 and US-26 (they need the notifications from `feature/notification-reminder` and `App/supabase/migrations/20261116000001_notifications_and_deadlines.sql` in the database). Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: AC-09.2, AC-10.2, US-11 and US-12.
 
 ## Running the tests
 
@@ -21,7 +21,7 @@ npx playwright show-report
 
 `App/.env` needs `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and the test accounts
 `E2E_WORKER_EMAIL`, `E2E_WORKER_PASSWORD`, `E2E_WORKER_FIRST_NAME`, `E2E_WORKER_LAST_NAME`,
-`E2E_RECRUITER_EMAIL`, `E2E_RECRUITER_PASSWORD` (logins in #testing). On GitHub the same names are repository secrets. `GEMINI_API_KEY` (optional, free from Google AI Studio) enables the AI features (cover letter, resume feedback); their tests AC-13.2, AC-25.2 and AC-25.3 are skipped without it.
+`E2E_RECRUITER_EMAIL`, `E2E_RECRUITER_PASSWORD` (logins in #testing). On GitHub the same names are repository secrets. `GEMINI_API_KEY` (optional, free from Google AI Studio) enables the AI features (cover letter, resume feedback, job recommendations); their tests AC-13.2, AC-25.2, AC-25.3 and AC-26.2 are skipped without it.
 
 ## Sign-in and access control
 
@@ -135,8 +135,8 @@ npx playwright show-report
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-07.1 | Header has a notifications button | Not built | `notifications.spec.ts` |
-| AC-07.2 | Status change notification names the new status | Not built | `notifications.spec.ts` |
+| AC-07.1 | Header has a notifications button | Built, not run yet | `notifications.spec.ts` |
+| AC-07.2 | Status change notification names the new status | Built, not run yet | `notifications.spec.ts` |
 
 ## US-09 — Candidate profile and resume viewer
 
@@ -231,22 +231,22 @@ npx playwright show-report
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-22.1 | Interview invitation shows as a notification | Not built | `notifications.spec.ts` |
-| AC-22.2 | Opening a status notification shows the application | Not built | `notifications.spec.ts` |
+| AC-22.1 | Interview invitation shows as a notification | Built, not run yet | `notifications.spec.ts` |
+| AC-22.2 | Opening a status notification shows the application | Built, not run yet | `notifications.spec.ts` |
 
 ## US-23 — Application deadline reminders
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-23.1 | Posting can be given an application deadline | Not built | `notifications.spec.ts` |
-| AC-23.2 | Upcoming deadline shows as a reminder | Not built | `notifications.spec.ts` |
+| AC-23.1 | Posting can be given an application deadline | Built, not run yet | `notifications.spec.ts` |
+| AC-23.2 | Upcoming deadline shows as a reminder | Built, not run yet | `notifications.spec.ts` |
 
 ## US-24 — New application notifications
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-24.1 | Recruiter header has a notifications button | Not built | `notifications.spec.ts` |
-| AC-24.2 | New application shows as a notification for the Recruiter | Not built | `notifications.spec.ts` |
+| AC-24.1 | Recruiter header has a notifications button | Built, not run yet | `notifications.spec.ts` |
+| AC-24.2 | New application shows as a notification for the Recruiter | Built, not run yet | `notifications.spec.ts` |
 
 ## US-25 — AI resume feedback
 
@@ -260,14 +260,13 @@ npx playwright show-report
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-26.1 | Jobs page recommends postings for the Worker | Not built | `ai-suggestions.spec.ts` |
-| AC-26.2 | Each recommendation says why it matches the Worker | Not built | `ai-suggestions.spec.ts` |
+| AC-26.1 | Jobs page recommends postings for the Worker | Built, not run yet | `ai-suggestions.spec.ts` |
+| AC-26.2 | Each recommendation says why it matches the Worker | Built, not run yet (needs `GEMINI_API_KEY`, skipped without it) | `ai-suggestions.spec.ts` |
 
 ## Open issues
 
 - **No resume when applying** (AC-05.1, AC-05.4, AC-08.4): *Apply Now* does not ask for a resume or check that the Worker has one.
 - **Drafts cannot be saved**: the job form offers *Draft*, but the database only allows `Open` and `Closed` (`jobs_status_check`), so saving a draft fails with "Failed to create job posting."
-- **No file upload** (AC-01.6, AC-02.16, AC-02.17) and **no resume delete** (AC-02.18).
 
 ## Notes
 
@@ -277,4 +276,5 @@ npx playwright show-report
 - Each run of AC-A.1 and AC-A.2 creates a real user in Supabase; clear the `e2e+…@example.com` users from time to time.
 - Resume tests create resumes titled `[E2E] …` on the shared Worker account; clear them in Supabase from time to time.
 - The test accounts are shared. AC-A.11 signs out with the "local" scope so it ends only its own session; logging out of a test account manually in the app ends every session of that account and can fail a CI run in progress. CI runs the acceptance tests one at a time for the same reason.
+- The notification tests (US-07, US-22 – US-24) run as one flow on their own `[E2E] Posting notifications …` posting: the Worker saves it and applies, the Recruiter sets the application to Interview, then the Worker unsaves it and the Recruiter closes it. The application and its notifications stay on the shared accounts (applications cannot be deleted).
 - Recruiter tests create postings titled `[E2E] Posting …` and close them at the end, so Workers never see them. The profile and status tests put the original values back.

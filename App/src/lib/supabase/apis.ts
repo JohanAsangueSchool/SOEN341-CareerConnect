@@ -45,7 +45,7 @@ export async function getJobs(client: SupabaseClient, filters: JobFilters = {}) 
     let query = client
         .from('jobs')
         .select(
-            `id, title, company, description, location, category, job_type, salary_min, salary_max, created_at`,
+            `id, title, company, description, location, category, job_type, salary_min, salary_max, application_deadline, created_at`,
         )
         .eq('status', 'Open')
         .order('created_at', { ascending: false });
@@ -79,7 +79,7 @@ export async function getJob(client: SupabaseClient, id: string) {
     const { data, error, status } = await client
         .from('jobs')
         .select(
-            `id, title, company, description, location, category, job_type, salary_min, salary_max, status, recruiter_id, created_at`,
+            `id, title, company, description, location, category, job_type, salary_min, salary_max, status, application_deadline, recruiter_id, created_at`,
         )
         .eq('id', id)
         .single();
@@ -92,7 +92,7 @@ export async function getRecruiterJobs(client: SupabaseClient) {
     const { data, error, status } = await client
         .from('jobs')
         .select(
-            `id, title, company, description, location, category, job_type, salary_min, salary_max, status, created_at`,
+            `id, title, company, description, location, category, job_type, salary_min, salary_max, status, application_deadline, created_at`,
         )
         .eq('recruiter_id', claims?.data?.claims.sub)
         .order('created_at', { ascending: false });
@@ -105,7 +105,7 @@ export async function getRecruiterJob(client: SupabaseClient, id: string) {
     const { data, error, status } = await client
         .from('jobs')
         .select(
-            `title, company, description, location, category, job_type, salary_min, salary_max, status`,
+            `title, company, description, location, category, job_type, salary_min, salary_max, status, application_deadline`,
         )
         .eq('id', id)
         .eq('recruiter_id', claims?.data?.claims.sub)
@@ -274,7 +274,7 @@ export async function getSavedJobs(client: SupabaseClient) {
     const { data, error, status } = await client
         .from('saved_jobs')
         .select(
-            `job_id, created_at, jobs (id, title, company, location, category, job_type, salary_min, salary_max, status, created_at)`,
+            `job_id, created_at, jobs (id, title, company, location, category, job_type, salary_min, salary_max, status, application_deadline, created_at)`,
         )
         .order('created_at', { ascending: false });
 
@@ -321,6 +321,40 @@ export async function removeFavoriteCandidate(client: SupabaseClient, candidateI
         .from('favorite_candidates')
         .delete()
         .eq('candidate_id', candidateId);
+
+    return { error, status };
+}
+
+export type NotificationType = {
+    id: string;
+    // Set by the database: application_status, new_application, new_job, job_expiring
+    type: string;
+    title: string;
+    message: string;
+    link: string;
+    read_at: string | null;
+    created_at: string;
+};
+
+// The signed-in user's latest notifications; row security only returns their own.
+// Workers first get reminders for saved jobs whose application_deadline is close.
+export async function getNotifications(client: SupabaseClient, isWorker: boolean) {
+    if (isWorker) await client.rpc('create_deadline_reminders');
+
+    const { data, error, status } = await client
+        .from('notifications')
+        .select('id, type, title, message, link, read_at, created_at')
+        .order('created_at', { ascending: false })
+        .limit(30);
+
+    return { data: data as NotificationType[] | null, error, status };
+}
+
+export async function markNotificationsRead(client: SupabaseClient, ids: string[]) {
+    const { error, status } = await client
+        .from('notifications')
+        .update({ read_at: new Date().toISOString() })
+        .in('id', ids);
 
     return { error, status };
 }

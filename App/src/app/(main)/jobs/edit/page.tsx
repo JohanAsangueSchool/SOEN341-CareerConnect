@@ -34,9 +34,11 @@ const emptyJob: jobSchemaInputType = {
     salary_min: null,
     salary_max: null,
     description: '',
+    application_deadline: null,
 };
 
 const inputToSalary = (value: string) => (value === '' ? null : Number(value));
+const inputToDeadline = (value: string | null) => (value ? value : null);
 
 export default function JobsEditPage() {
     const router = useRouter();
@@ -68,6 +70,7 @@ export default function JobsEditPage() {
                     salary_min: data.salary_min,
                     salary_max: data.salary_max,
                     description: data.description ?? '',
+                    application_deadline: data.application_deadline ?? null,
                 };
             } catch {
                 toaster.create({
@@ -204,6 +207,24 @@ export default function JobsEditPage() {
                                     <Field.ErrorText>{errors.salary_max?.message}</Field.ErrorText>
                                 </Field.Root>
                             </HStack>
+
+                            <Field.Root invalid={!!errors.application_deadline}>
+                                <Field.Label>Application Deadline</Field.Label>
+                                <Input
+                                    type='date'
+                                    maxWidth='xs'
+                                    {...register('application_deadline', {
+                                        setValueAs: inputToDeadline,
+                                    })}
+                                />
+                                <Field.HelperText>
+                                    Last day to apply. Workers who saved the posting get a reminder
+                                    3 days before. Leave empty for no deadline.
+                                </Field.HelperText>
+                                <Field.ErrorText>
+                                    {errors.application_deadline?.message}
+                                </Field.ErrorText>
+                            </Field.Root>
 
                             <Field.Root invalid={!!errors.description}>
                                 <Field.Label>Description</Field.Label>

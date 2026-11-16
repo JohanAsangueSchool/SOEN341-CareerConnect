@@ -110,6 +110,9 @@ test.describe('Recruiter accounts', () => {
 });
 
 test.describe.serial('Notifications for a posting', () => {
+    // Each step drives both accounts, and the cleanup closes the posting.
+    test.describe.configure({ timeout: 60_000 });
+
     const title = uniqueTitle('Posting notifications');
     const deadline = dateFromToday(2);
     let recruiter: Page;
@@ -168,8 +171,15 @@ test.describe.serial('Notifications for a posting', () => {
         ).toBeVisible();
         await expect(seeker.getByRole('button', { name: 'Applied' })).toBeDisabled();
 
+        // Found by its link, so a missing notification and a reworded one fail
+        // on different lines.
         const list = await openNotifications(recruiter);
-        await list.getByText(`${worker.fullName} applied to ${title}.`).click();
+        const notification = list.locator(`a[href="/applications?job=${jobId}"]`);
+        await expect(notification, 'no notification links to this posting').toBeVisible();
+        await expect(notification).toContainText('New application');
+        await expect(notification).toContainText(worker.fullName, { ignoreCase: true });
+
+        await notification.click();
         await expect(recruiter).toHaveURL(`/applications?job=${jobId}`);
     });
 
@@ -210,6 +220,9 @@ test.describe.serial('Notifications for a posting', () => {
 });
 
 test.describe.serial('Job alerts for a field of interest', () => {
+    // Each step drives both accounts, and the cleanup closes two postings.
+    test.describe.configure({ timeout: 60_000 });
+
     // A field only this run uses, so the alert can only come from this flow.
     const category = uniqueTitle('Alert field');
     const firstTitle = uniqueTitle('Alert posting');

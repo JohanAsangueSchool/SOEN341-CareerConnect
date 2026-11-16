@@ -1,6 +1,13 @@
 import { type Page, expect, test } from '@playwright/test';
 
-import { NOT_BUILT_TIMEOUT, WORKER_STATE, createResume, resumeCard, uniqueTitle } from './helpers';
+import {
+    RECRUITER_STATE,
+    WORKER_STATE,
+    createResume,
+    resumeCard,
+    resumeSection,
+    uniqueTitle,
+} from './helpers';
 
 /**
  * US-25 — AI-Powered Resume Feedback (AC-25.1 … AC-25.3)
@@ -9,7 +16,8 @@ import { NOT_BUILT_TIMEOUT, WORKER_STATE, createResume, resumeCard, uniqueTitle 
  * AC-25.2 and AC-25.3 ask Google Gemini for real feedback, so they need
  * GEMINI_API_KEY (in App/.env locally, a repository secret in CI) and are
  * skipped without it. They create their own resume and delete it afterwards.
- * US-26 is not built yet: its tests are expected failures.
+ * AC-26.2 also needs the key; it creates a matching posting and resume, then
+ * closes the posting and deletes the resume.
  * See Documentation/Acceptance_Tests_Sprint_2.md.
  */
 
@@ -151,21 +159,70 @@ test('AC-25.3 an uploaded PDF resume is reviewed from the file', async ({ page }
 });
 
 test('AC-26.1 the jobs page recommends postings for the Worker', async ({ page }) => {
-    test.fail();
-
     await page.goto('/jobs');
 
-    await expect(page.getByRole('heading', { name: 'Recommended for you' })).toBeVisible({
-        timeout: NOT_BUILT_TIMEOUT,
-    });
+    await expect(page.getByRole('heading', { name: 'Recommended for you' })).toBeVisible();
 });
 
-test('AC-26.2 each recommendation says why it matches the Worker', async ({ page }) => {
-    test.fail();
+test('AC-26.2 each recommendation says why it matches the Worker', async ({ page, browser }) => {
+    test.skip(!process.env.GEMINI_API_KEY, NEEDS_KEY);
+    test.setTimeout(180_000);
+    const resumeTitle = uniqueTitle('Matching');
+    const postingTitle = uniqueTitle('Posting React Native developer');
+    const recruiter = await (await browser.newContext({ storageState: RECRUITER_STATE })).newPage();
 
-    await page.goto('/jobs');
+    // A posting and a resume that clearly fit each other.
+    await recruiter.goto('/jobs/edit');
+    await recruiter.getByLabel('Title').fill(postingTitle);
+    await recruiter.getByLabel('Company').fill('E2E Test Company');
+    await recruiter.getByLabel('Status').selectOption('Open');
+    await recruiter.getByLabel('Job Type').selectOption('Internship');
+    await recruiter.getByLabel('Location').fill('Montreal');
+    await recruiter.getByLabel('Category').fill('Software Engineering');
+    await recruiter
+        .getByLabel('Description')
+        .fill('Build our mobile app with React Native and TypeScript. Created by the test suite.');
+    await recruiter.getByRole('button', { name: 'Create Job Posting' }).click();
+    await expect(recruiter).toHaveURL('/jobs');
 
-    await expect(page.getByText(/matches your (profile|resume|skills)/i).first()).toBeVisible({
-        timeout: NOT_BUILT_TIMEOUT,
-    });
+    await page.goto('/resumes/edit');
+    await page.locator('fieldset').first().getByLabel('Title').fill(resumeTitle);
+    await page
+        .getByLabel('Summary')
+        .fill(
+            'Software engineering student who builds mobile apps with React Native and TypeScript.',
+        );
+    const skills = resumeSection(page, 'Skills');
+    await skills.getByRole('button', { name: 'Add' }).click();
+    await skills.getByLabel('Name').fill('React Native');
+    await page.getByRole('button', { name: 'Create Resume' }).click();
+    await expect(page).toHaveURL('/resumes');
+
+    try {
+        // A fresh browser context, so no recommendations are cached yet.
+        await page.goto('/jobs');
+        const recommendations = page.getByRole('list', { name: 'Recommended jobs' });
+        await expect(recommendations).toBeVisible({ timeout: 120_000 });
+
+        const items = recommendations.getByRole('listitem');
+        expect(await items.count()).toBeGreaterThanOrEqual(1);
+        for (const item of await items.all()) {
+            await expect(item).toContainText(/Why it matches your profile: \S+/);
+            await expect(item).toContainText(/(Strong|Good) match/);
+        }
+    } finally {
+        await deleteResume(page, resumeTitle);
+
+        // Close the posting, so Workers no longer see it.
+        await recruiter.goto('/jobs');
+        const card = recruiter
+            .getByRole('heading', { name: postingTitle, exact: true })
+            .locator('xpath=ancestor::div[.//a[starts-with(@href, "/jobs/edit?id=")]][1]');
+        await card.getByRole('link', { name: 'Edit' }).click();
+        await expect(recruiter.getByLabel('Title')).toHaveValue(postingTitle);
+        await recruiter.getByLabel('Status').selectOption('Closed');
+        await recruiter.getByRole('button', { name: 'Save Changes' }).click();
+        await expect(recruiter).toHaveURL('/jobs');
+        await recruiter.context().close();
+    }
 });

@@ -18,6 +18,7 @@ import { Suspense, useEffect, useState } from 'react';
 import {
     FaArrowRight,
     FaBriefcase,
+    FaCalendarXmark,
     FaDollarSign,
     FaLayerGroup,
     FaLocationDot,
@@ -28,13 +29,19 @@ import {
     FaXmark,
 } from 'react-icons/fa6';
 
+import { JobRecommendations } from '@/components/job_recommendations';
 import { toaster } from '@/components/ui/toaster';
 import { useUserProfile } from '@/contexts/user_profile';
 import { getJobFilterOptions, getJobs, getRecruiterJobs } from '@/lib/supabase/apis';
 import { createClientSupabase } from '@/lib/supabase/client';
 import { JobStatusEnumType, JobTypeEnumValues } from '@/utils/enums';
 import { validRequestStatus } from '@/utils/function';
-import { formatSalary, jobStatusColorPalette, jobTypeColorPalette } from '@/utils/jobs';
+import {
+    formatDeadline,
+    formatSalary,
+    jobStatusColorPalette,
+    jobTypeColorPalette,
+} from '@/utils/jobs';
 
 import { postJob } from './edit/actions';
 
@@ -48,6 +55,7 @@ type JobCardType = {
     job_type: string;
     salary_min: number | null;
     salary_max: number | null;
+    application_deadline: string | null;
     created_at: string;
 };
 
@@ -246,6 +254,8 @@ function JobsListing() {
 
     return (
         <>
+            <JobRecommendations />
+
             <div className='flex flex-col gap-3'>
                 <InputGroup startElement={<FaMagnifyingGlass />}>
                     <Input
@@ -376,6 +386,12 @@ function JobCard({ job, query }: { job: JobCardType; query: string }) {
                         <FaDollarSign />
                         {formatSalary(job.salary_min, job.salary_max)}
                     </HStack>
+                    {job.application_deadline && (
+                        <HStack gap={1}>
+                            <FaCalendarXmark />
+                            Apply by {formatDeadline(job.application_deadline)}
+                        </HStack>
+                    )}
                 </HStack>
             </Card.Body>
             <Card.Footer justifyContent='flex-end'>

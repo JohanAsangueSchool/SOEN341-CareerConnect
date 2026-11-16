@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
 import {
     FaCalendar,
+    FaCalendarXmark,
     FaChevronLeft,
     FaDollarSign,
     FaLayerGroup,
@@ -20,7 +21,13 @@ import { useUserProfile } from '@/contexts/user_profile';
 import { applyToJob, getJob, hasUserApplied } from '@/lib/supabase/apis';
 import { createClientSupabase } from '@/lib/supabase/client';
 import { validRequestStatus } from '@/utils/function';
-import { formatSalary, jobStatusColorPalette, jobTypeColorPalette } from '@/utils/jobs';
+import {
+    formatDeadline,
+    formatSalary,
+    isPastDeadline,
+    jobStatusColorPalette,
+    jobTypeColorPalette,
+} from '@/utils/jobs';
 
 type JobDetailType = {
     id: string;
@@ -33,6 +40,7 @@ type JobDetailType = {
     salary_min: number | null;
     salary_max: number | null;
     status: string;
+    application_deadline: string | null;
     recruiter_id: string | null;
     created_at: string;
     application_deadline: string | null;
@@ -208,12 +216,19 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                                 Posted {new Date(job.created_at).toLocaleDateString()}
                             </HStack>
                             {job.application_deadline && (
-                            <HStack gap={1}>
-                                <FaCalendar />
-                                Apply by{' '}
-                                {new Date(`${job.application_deadline}T00:00:00`).toLocaleDateString()}
-                            </HStack>
-                        )}
+                                <HStack
+                                    gap={1}
+                                    color={
+                                        isPastDeadline(job.application_deadline)
+                                            ? 'fg.error'
+                                            : undefined
+                                    }
+                                >
+                                    <FaCalendarXmark />
+                                    Application application_deadline{' '}
+                                    {formatDeadline(job.application_deadline)}
+                                </HStack>
+                            )}
                         </HStack>
                     </Card.Header>
                     <Card.Body gap={3} borderTopWidth='1px' marginTop={4} paddingTop={6}>
@@ -239,11 +254,17 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                                 colorPalette='blue'
                                 onClick={handleApply}
                                 loading={applying}
-                                disabled={applying || hasApplied || job.status !== 'Open'}
+                                disabled={
+                                    applying ||
+                                    hasApplied ||
+                                    job.status !== 'Open' ||
+                                    isPastDeadline(job.application_deadline)
+                                }
                             >
                                 {hasApplied
                                     ? 'Applied'
-                                    : job.status !== 'Open'
+                                    : job.status !== 'Open' ||
+                                        isPastDeadline(job.application_deadline)
                                       ? 'Applications closed'
                                       : 'Apply Now'}
                             </Button>

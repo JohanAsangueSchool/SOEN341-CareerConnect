@@ -25,6 +25,8 @@ export const jobSchema = z
                 'Please enter a valid application deadline.',
             ),
         description: z.string().trim(),
+        // Last day applications are accepted, as YYYY-MM-DD; null for none
+        application_deadline: z.iso.date({ error: 'Enter a valid date.' }).nullable(),
     })
     .refine(
         (job) =>

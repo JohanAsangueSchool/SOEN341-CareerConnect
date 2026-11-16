@@ -16,6 +16,7 @@ import {
     FaUsers,
 } from 'react-icons/fa6';
 
+import { NotificationsMenu } from '@/components/notifications_menu';
 import { toaster } from '@/components/ui/toaster';
 import { UserProfileProvider, UserProfileType } from '@/contexts/user_profile';
 import { getUserProfile } from '@/lib/supabase/apis';
@@ -210,8 +211,10 @@ function MainLayoutHeader({
 
             <div className='flex-1' />
 
+            <NotificationsMenu isWorker={userProfile.account_type === 'Worker'} />
+
             <Menu.Root positioning={{ placement: 'bottom-start' }}>
-                <Menu.Trigger rounded='full' focusRing='outside'>
+                <Menu.Trigger rounded='full' focusRing='outside' aria-label='Account menu'>
                     <Avatar.Root size='sm'>
                         <Avatar.Fallback name={fullName} />
                         {userProfile.avatar_url && <Avatar.Image src={userProfile.avatar_url} />}

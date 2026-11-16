@@ -61,12 +61,18 @@ export async function signIn(page: Page, email: string, password: string) {
     await expect(page).toHaveURL('/', { timeout: 20_000 });
 }
 
-/**
- * The header's avatar menu trigger. The navigation tabs render as links, so the
- * menu trigger is the only button in the header.
- */
+/** The header's avatar menu trigger. */
 export function avatarMenu(page: Page): Locator {
-    return page.locator('header').getByRole('button');
+    return page.locator('header').getByRole('button', { name: 'Account menu' });
+}
+
+/** Opens the notifications list from the header bell and returns it. */
+export async function openNotifications(page: Page): Promise<Locator> {
+    await page.goto('/');
+    await page.locator('header').getByRole('button', { name: 'Notifications' }).click();
+    const list = page.getByRole('dialog');
+    await expect(list.getByText('Notifications', { exact: true })).toBeVisible();
+    return list;
 }
 
 /** Opens the avatar menu and signs out. */

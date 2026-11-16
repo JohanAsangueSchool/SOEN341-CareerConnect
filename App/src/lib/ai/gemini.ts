@@ -17,9 +17,10 @@ import 'server-only';
 /**
  * Free-tier models to try, best first. The free tier is often overloaded (503
  * "high demand") or rate-limited (429); when a model is busy or too slow, the
- * next one answers instead.
+ * next one answers instead. gemini-3.8-flash is last: on the free tier it is
+ * overloaded so often that trying it first cost every request its timeout.
  */
-const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite'];
+const GEMINI_MODELS = ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash'];
 
 /**
  * How long each model gets before the next one is tried. Three tries stay

@@ -33,6 +33,7 @@ const emptyJob: jobSchemaInputType = {
     status: 'Draft',
     salary_min: null,
     salary_max: null,
+    application_deadline: '',
     description: '',
     application_deadline: null,
 };
@@ -69,6 +70,7 @@ export default function JobsEditPage() {
                     status: data.status,
                     salary_min: data.salary_min,
                     salary_max: data.salary_max,
+                    application_deadline: data.application_deadline ?? '',
                     description: data.description ?? '',
                     application_deadline: data.application_deadline ?? null,
                 };
@@ -171,6 +173,14 @@ export default function JobsEditPage() {
                                     <Field.Label>Location</Field.Label>
                                     <Input type='text' {...register('location')} />
                                     <Field.ErrorText>{errors.location?.message}</Field.ErrorText>
+                                </Field.Root>
+
+                                <Field.Root invalid={!!errors.application_deadline}>
+                                    <Field.Label>Application Deadline</Field.Label>
+                                    <Input type='date' {...register('application_deadline')} />
+                                    <Field.ErrorText>
+                                        {errors.application_deadline?.message}
+                                    </Field.ErrorText>
                                 </Field.Root>
 
                                 <Field.Root invalid={!!errors.category}>

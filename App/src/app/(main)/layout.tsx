@@ -1,5 +1,6 @@
 'use client';
 
+import { FaBell } from 'react-icons/fa6';
 import { Avatar, Link, Menu, Portal, Spinner, Tabs } from '@chakra-ui/react';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { usePathname, useRouter } from 'next/navigation';
@@ -9,6 +10,7 @@ import {
     FaBriefcase,
     FaClipboardCheck,
     FaFile,
+    FaFilter,
     FaGaugeHigh,
     FaHouse,
     FaUsers,
@@ -84,7 +86,30 @@ function MainLayoutHeader({
 }) {
     const router = useRouter();
     const pathname = usePathname();
+    const [unreadCount, setUnreadCount] = useState(0);
     const fullName = `${userProfile.first_name} ${userProfile.last_name}`;
+
+    useEffect(() => {
+        async function loadUnreadCount() {
+            const { count, error } = await supabase
+                .from('notifications')
+                .select('id', { count: 'exact', head: true })
+                .is('read_at', null);
+
+            if (error) {
+                console.error('Notification query failed');
+                console.error('Message:', error.message);
+                console.error('Code:', error.code);
+                console.error('Details:', error.details);
+                console.error('Hint:', error.hint);
+                return;
+            }
+
+            setUnreadCount(count ?? 0);
+        }
+
+        loadUnreadCount();
+    }, [supabase, pathname]);
 
     return (
         <header className='flex w-full items-center gap-2 border-b p-2'>
@@ -142,6 +167,13 @@ function MainLayoutHeader({
                                     Saved Jobs
                                 </Link>
                             </Tabs.Trigger>
+
+                            <Tabs.Trigger value='/job-alerts' asChild>
+                                <Link unstyled href='/job-alerts'>
+                                    <FaFilter />
+                                    Job Alerts
+                                </Link>
+                            </Tabs.Trigger>
                         </>
                     )}
 
@@ -162,6 +194,18 @@ function MainLayoutHeader({
                             </Tabs.Trigger>
                         </>
                     )}
+
+                    <Tabs.Trigger value='/notifications' asChild>
+                        <Link unstyled href='/notifications' className='flex items-center gap-2'>
+                            <FaBell />
+                            Notifications
+                            {unreadCount > 0 && (
+                                <span className='rounded-full bg-red-500 px-2 py-0.5 text-xs text-white'>
+                                    {unreadCount > 99 ? '99+' : unreadCount}
+                                </span>
+                            )}
+                        </Link>
+                    </Tabs.Trigger>
                 </Tabs.List>
             </Tabs.Root>
 

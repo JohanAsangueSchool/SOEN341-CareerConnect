@@ -166,7 +166,8 @@ test('AC-26.1 the jobs page recommends postings for the Worker', async ({ page }
 
 test('AC-26.2 each recommendation says why it matches the Worker', async ({ page, browser }) => {
     test.skip(!process.env.GEMINI_API_KEY, NEEDS_KEY);
-    test.setTimeout(180_000);
+    // Up to three Gemini answers, plus creating and cleaning up the test data.
+    test.setTimeout(240_000);
     const resumeTitle = uniqueTitle('Matching');
     const postingTitle = uniqueTitle('Posting React Native developer');
     const recruiter = await (await browser.newContext({ storageState: RECRUITER_STATE })).newPage();
@@ -201,8 +202,23 @@ test('AC-26.2 each recommendation says why it matches the Worker', async ({ page
     try {
         // A fresh browser context, so no recommendations are cached yet.
         await page.goto('/jobs');
-        const recommendations = page.getByRole('list', { name: 'Recommended jobs' });
-        await expect(recommendations).toBeVisible({ timeout: 120_000 });
+        const card = page.getByRole('region', { name: 'Recommended for you' });
+        const finding = card.getByText('Finding postings that match your resume…');
+        const recommendations = card.getByRole('list', { name: 'Recommended jobs' });
+        await expect(card).toBeVisible();
+
+        // Gemini (free tier) is sometimes busy or answers with no match, which
+        // shows a warning or an empty state instead of the list: ask again, up
+        // to twice, with the card's refresh button.
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            await expect(finding).toBeHidden({ timeout: 60_000 });
+            if (attempt === 3 || (await recommendations.isVisible())) break;
+            await card.getByRole('button', { name: 'Refresh recommendations' }).click();
+            await expect(finding)
+                .toBeVisible({ timeout: 2_000 })
+                .catch(() => {});
+        }
+        await expect(recommendations).toBeVisible();
 
         const items = recommendations.getByRole('listitem');
         expect(await items.count()).toBeGreaterThanOrEqual(1);

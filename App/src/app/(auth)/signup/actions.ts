@@ -1,9 +1,10 @@
 'use server';
 
-import { createServerSupabase } from '@/lib/supabase/server';
-import { signupFormSchemaType } from '@/utils/forms/auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+
+import { createServerSupabase } from '@/lib/supabase/server';
+import { signupFormSchemaType } from '@/utils/forms/auth';
 
 export async function signup(data: signupFormSchemaType) {
     const supabase = await createServerSupabase();

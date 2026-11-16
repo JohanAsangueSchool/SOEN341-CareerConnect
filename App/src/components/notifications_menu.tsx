@@ -112,6 +112,9 @@ export function NotificationsMenu({ isWorker }: { isWorker: boolean }) {
 
     return (
         <Popover.Root
+            // Only in the page while open, so its text is not mistaken for page content
+            lazyMount
+            unmountOnExit
             open={open}
             onOpenChange={(e) => onOpenChange(e.open)}
             positioning={{ placement: 'bottom-end' }}

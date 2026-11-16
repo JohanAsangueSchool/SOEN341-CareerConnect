@@ -7,7 +7,7 @@ Every criterion has an automated test in `App/tests/` (Playwright), which runs o
 
 **Status:** **Pass** = test passes · **Built, not run yet** = feature and test written, waiting for the first CI run · **Not met** = built but behaves differently · **Not built** = feature does not exist yet. Not met and Not built tests are expected failures (`test.fail()`).
 
-**Summary (105 criteria):** 86 Pass · 10 Built, not run yet · 3 Not met · 6 Not built. Built, not run yet: US-07, US-22 – US-24 and US-26 (they need the notifications from `feature/notification-reminder` and `App/supabase/migrations/20261116000001_notifications_and_deadlines.sql` in the database). Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: AC-09.2, AC-10.2, US-11 and US-12.
+**Summary (105 criteria):** 86 Pass · 14 Built, not run yet · 3 Not met · 2 Not built. Built, not run yet: US-07, US-11, US-12, US-22 – US-24 and US-26 (they need the notifications from `feature/notification-reminder` and `App/supabase/migrations/20261116000001_notifications_and_deadlines.sql` in the database). Not met: AC-05.1, AC-05.4 (no resume when applying), AC-08.4 (no applicant resume). Not built: AC-09.2, AC-10.2.
 
 ## Running the tests
 
@@ -157,15 +157,15 @@ npx playwright show-report
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-11.1 | Worker can choose fields of interest for job alerts | Not built | `notifications.spec.ts` |
-| AC-11.2 | New posting in a chosen field shows as a notification | Not built | `notifications.spec.ts` |
+| AC-11.1 | Worker can choose fields of interest for job alerts | Built, not run yet | `notifications.spec.ts` |
+| AC-11.2 | New posting in a chosen field shows as a notification | Built, not run yet | `notifications.spec.ts` |
 
 ## US-12 — Job expiry reminders
 
 | ID | Criterion | Status | Test |
 |---|---|---|---|
-| AC-12.1 | Job posting shows its application deadline | Not built | `notifications.spec.ts` |
-| AC-12.2 | Saved job about to expire shows as a notification | Not built | `notifications.spec.ts` |
+| AC-12.1 | Job posting shows its application deadline | Built, not run yet | `notifications.spec.ts` |
+| AC-12.2 | Saved job about to expire shows as a notification | Built, not run yet | `notifications.spec.ts` |
 
 ## US-13 — AI cover letter generator
 

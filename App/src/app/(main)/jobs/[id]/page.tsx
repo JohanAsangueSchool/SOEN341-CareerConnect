@@ -43,7 +43,6 @@ type JobDetailType = {
     application_deadline: string | null;
     recruiter_id: string | null;
     created_at: string;
-    application_deadline: string | null;
 };
 
 export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs/[id]'>) {
@@ -53,6 +52,9 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
     const [job, setJob] = useState<JobDetailType>();
     const [applying, setApplying] = useState(false);
     const [hasApplied, setHasApplied] = useState(false);
+    // Apply stays disabled until the page knows whether the Worker already
+    // applied, so a late answer to that check can't undo a new application.
+    const [appliedChecked, setAppliedChecked] = useState(false);
     const [isOwner, setIsOwner] = useState(false);
 
     // The listing passes its filters in the query string so Back restores the same results
@@ -139,6 +141,7 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                 if (!appliedResult.error && validRequestStatus(appliedResult.status)) {
                     setHasApplied(appliedResult.data);
                 }
+                setAppliedChecked(true);
             } catch {
                 if (ignore) return;
 
@@ -225,8 +228,7 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                                     }
                                 >
                                     <FaCalendarXmark />
-                                    Application application_deadline{' '}
-                                    {formatDeadline(job.application_deadline)}
+                                    Application deadline {formatDeadline(job.application_deadline)}
                                 </HStack>
                             )}
                         </HStack>
@@ -255,6 +257,7 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                                 onClick={handleApply}
                                 loading={applying}
                                 disabled={
+                                    !appliedChecked ||
                                     applying ||
                                     hasApplied ||
                                     job.status !== 'Open' ||

@@ -1,11 +1,11 @@
 'use client';
 
-import { FaBell } from 'react-icons/fa6';
 import { Avatar, Link, Menu, Portal, Spinner, Tabs } from '@chakra-ui/react';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
+    FaBell,
     FaBookmark,
     FaBriefcase,
     FaClipboardCheck,
@@ -97,11 +97,7 @@ function MainLayoutHeader({
                 .is('read_at', null);
 
             if (error) {
-                console.error('Notification query failed');
-                console.error('Message:', error.message);
-                console.error('Code:', error.code);
-                console.error('Details:', error.details);
-                console.error('Hint:', error.hint);
+                console.error('Failed to load the unread notification count:', error.message);
                 return;
             }
 

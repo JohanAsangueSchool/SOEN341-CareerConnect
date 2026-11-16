@@ -41,7 +41,10 @@ async function workerListingCount(page: Page, title: string): Promise<number> {
     await page.goto(`/jobs?keyword=${encodeURIComponent(title)}`);
     // Wait for the search to finish: either results or the empty state.
     await expect(
-        page.getByRole('link', { name: 'View' }).first().or(page.getByText('No jobs match your filters')),
+        page
+            .getByRole('link', { name: 'View' })
+            .first()
+            .or(page.getByText('No jobs match your filters')),
     ).toBeVisible();
     return page.getByRole('heading', { name: title, exact: true }).count();
 }
@@ -76,10 +79,7 @@ test('AC-08.2 a posting with a required field empty is rejected', async ({ page 
     await expect(page).toHaveURL('/jobs/edit');
 });
 
-test('AC-08.1 / AC-08.3 a Recruiter can create and edit a posting', async ({
-    page,
-    browser,
-}) => {
+test('AC-08.1 / AC-08.3 a Recruiter can create and edit a posting', async ({ page, browser }) => {
     const title = uniqueTitle('Posting');
     const editedTitle = `${title} edited`;
     const seeker = await workerPage(browser);

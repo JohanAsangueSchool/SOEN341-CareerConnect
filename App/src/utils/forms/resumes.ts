@@ -1,4 +1,5 @@
 import * as z from 'zod';
+
 import { ResumeStatusEnum } from '../enums';
 
 export const resumeSkillSchema = z.object({

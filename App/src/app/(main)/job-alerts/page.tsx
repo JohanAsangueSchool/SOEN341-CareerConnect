@@ -1,12 +1,11 @@
-
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Heading, Spinner, Text, VStack } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
 
+import { toaster } from '@/components/ui/toaster';
 import { useUserProfile } from '@/contexts/user_profile';
 import { createClientSupabase } from '@/lib/supabase/client';
-import { toaster } from '@/components/ui/toaster';
 
 export default function JobAlertsPage() {
     const userProfile = useUserProfile();
@@ -22,8 +21,7 @@ export default function JobAlertsPage() {
             const supabase = createClientSupabase();
 
             try {
-                const { data: claimsData, error: claimsError } =
-                    await supabase.auth.getClaims();
+                const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
 
                 if (claimsError || !claimsData || !claimsData.claims.sub) {
                     throw new Error('Could not identify your account.');
@@ -39,9 +37,7 @@ export default function JobAlertsPage() {
                         .eq('status', 'Open')
                         .not('category', 'is', null),
 
-                    supabase
-                        .from('job_alert_preferences')
-                        .select('category'),
+                    supabase.from('job_alert_preferences').select('category'),
                 ]);
 
                 if (jobsResult.error) throw jobsResult.error;
@@ -56,9 +52,7 @@ export default function JobAlertsPage() {
                 ].sort();
 
                 setCategories(availableCategories);
-                setSelectedCategories(
-                    (preferencesResult.data ?? []).map((item) => item.category),
-                );
+                setSelectedCategories((preferencesResult.data ?? []).map((item) => item.category));
             } catch (error) {
                 console.error('Failed to load job alert preferences:', error);
 
@@ -101,9 +95,7 @@ export default function JobAlertsPage() {
 
                 if (error) throw error;
 
-                setSelectedCategories((current) =>
-                    current.filter((item) => item !== category),
-                );
+                setSelectedCategories((current) => current.filter((item) => item !== category));
             } else {
                 const { error } = await supabase
                     .from('job_alert_preferences')
@@ -140,17 +132,15 @@ export default function JobAlertsPage() {
             <VStack align='start' gap={1}>
                 <Heading textStyle='3xl'>Job Alert Preferences</Heading>
                 <Text color='fg.muted'>
-                    CChoose the job categories you&apos;re interested in.
-                    We&apos;ll notify you when a new job is posted in those categories.
+                    Choose the job categories you&apos;re interested in. We&apos;ll notify you when
+                    a new job is posted in those categories.
                 </Text>
             </VStack>
 
             {loading ? (
                 <Spinner size='xl' />
             ) : categories.length === 0 ? (
-                <Text color='fg.muted'>
-                    No job categories are currently available.
-                </Text>
+                <Text color='fg.muted'>No job categories are currently available.</Text>
             ) : (
                 <VStack align='stretch' gap={3}>
                     {categories.map((category) => (

@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge, Button, Card, Heading, HStack, Spinner, Text, VStack } from '@chakra-ui/react';
+import { Badge, Button, Card, HStack, Heading, Spinner, Text, VStack } from '@chakra-ui/react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 

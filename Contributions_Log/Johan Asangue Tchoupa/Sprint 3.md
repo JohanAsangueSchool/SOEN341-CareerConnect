@@ -18,8 +18,7 @@ Feature development. Notify job seekers when the status of one of their applicat
 
 **Links**
 
-- Branch: _to add_
-- Commit: _to add_
+- Commit: a780373d79661eeb7743a420b587b7d2024685dc
 - Issues: [#51 US-22: Application Status Update Notifications](https://github.com/JohanAsangueSchool/SOEN341-CareerConnect/issues/51), [#53 US-24: New Application Notifications](https://github.com/JohanAsangueSchool/SOEN341-CareerConnect/issues/53)
 
 **Time Spent**
@@ -43,7 +42,7 @@ Feature development. Let recruiters set an application deadline on a posting, an
 
 **Links**
 
-- Commit: _to add_
+- Commit: a780373d79661eeb7743a420b587b7d2024685dc
 - Migration: `App/supabase/migrations/20261116000001_notifications_and_deadlines.sql`
 - Issue: [#52 US-23: Application Deadline Reminders](https://github.com/JohanAsangueSchool/SOEN341-CareerConnect/issues/52)
 
@@ -69,8 +68,7 @@ Feature development. Recommend open job postings to job seekers based on their r
 
 **Links**
 
-- Branch: _to add_
-- Commit: _to add_
+- Commit: a780373d79661eeb7743a420b587b7d2024685dc
 - Issue: [#55 US-26: AI Job Matching Suggestions](https://github.com/JohanAsangueSchool/SOEN341-CareerConnect/issues/55)
 
 **Time Spent**

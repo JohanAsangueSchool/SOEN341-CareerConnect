@@ -79,7 +79,7 @@ export async function getJob(client: SupabaseClient, id: string) {
     const { data, error, status } = await client
         .from('jobs')
         .select(
-            `id, title, company, description, location, category, job_type, salary_min, salary_max, status, recruiter_id, created_at`,
+            `id, title, company, description, location, category, job_type, salary_min, salary_max, status, recruiter_id, created_at, application_deadline`,
         )
         .eq('id', id)
         .single();
@@ -105,7 +105,7 @@ export async function getRecruiterJob(client: SupabaseClient, id: string) {
     const { data, error, status } = await client
         .from('jobs')
         .select(
-            `title, company, description, location, category, job_type, salary_min, salary_max, status`,
+            `title, company, description, location, category, job_type, salary_min, salary_max, status, application_deadline`,
         )
         .eq('id', id)
         .eq('recruiter_id', claims?.data?.claims.sub)

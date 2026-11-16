@@ -35,6 +35,7 @@ type JobDetailType = {
     status: string;
     recruiter_id: string | null;
     created_at: string;
+    application_deadline: string | null;
 };
 
 export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs/[id]'>) {
@@ -206,6 +207,13 @@ export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs
                                 <FaCalendar />
                                 Posted {new Date(job.created_at).toLocaleDateString()}
                             </HStack>
+                            {job.application_deadline && (
+                            <HStack gap={1}>
+                                <FaCalendar />
+                                Apply by{' '}
+                                {new Date(`${job.application_deadline}T00:00:00`).toLocaleDateString()}
+                            </HStack>
+                        )}
                         </HStack>
                     </Card.Header>
                     <Card.Body gap={3} borderTopWidth='1px' marginTop={4} paddingTop={6}>

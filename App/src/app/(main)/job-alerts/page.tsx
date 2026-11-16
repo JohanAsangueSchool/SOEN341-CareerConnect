@@ -73,10 +73,13 @@ export default function JobAlertsPage() {
             }
         }
 
+        // if (userProfile?.account_type === 'Worker') {
+        //     loadPreferences();
+        // } else {
+        //     setLoading(false);
+        // }
         if (userProfile?.account_type === 'Worker') {
             loadPreferences();
-        } else {
-            setLoading(false);
         }
     }, [userProfile]);
 
@@ -137,8 +140,8 @@ export default function JobAlertsPage() {
             <VStack align='start' gap={1}>
                 <Heading textStyle='3xl'>Job Alert Preferences</Heading>
                 <Text color='fg.muted'>
-                    Choose the job categories you're interested in.
-                    We'll notify you when a new job is posted in those categories.
+                    CChoose the job categories you&apos;re interested in.
+                    We&apos;ll notify you when a new job is posted in those categories.
                 </Text>
             </VStack>
 

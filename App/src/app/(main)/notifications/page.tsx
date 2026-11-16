@@ -49,7 +49,11 @@ export default function NotificationsPage() {
     }
 
     useEffect(() => {
-        loadNotifications();
+        const timeoutId = setTimeout(() => {
+            loadNotifications();
+        }, 0);
+
+        return () => clearTimeout(timeoutId);
     }, []);
 
     async function toggleReadStatus(notification: NotificationType) {
@@ -136,8 +140,8 @@ export default function NotificationsPage() {
                 <Card.Root>
                     <Card.Body padding={8}>
                         <VStack align='center' gap={2}>
-                            <Heading textStyle='lg'>You're all caught up!</Heading>
-                            <Text color='fg.muted'>You don't have any notifications yet.</Text>
+                            <Heading textStyle='lg'>You&apos;re all caught up!</Heading>
+                            <Text color='fg.muted'>You don&apos;t have any notifications yet.</Text>
                         </VStack>
                     </Card.Body>
                 </Card.Root>

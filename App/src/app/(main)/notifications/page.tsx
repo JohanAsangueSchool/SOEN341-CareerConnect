@@ -52,19 +52,19 @@ export default function NotificationsPage() {
         loadNotifications();
     }, []);
 
-    async function markAsRead(notificationId: string) {
+    async function toggleReadStatus(notification: NotificationType) {
         const supabase = createClientSupabase();
+        const newReadAt = notification.read_at ? null : new Date().toISOString();
 
         const { error } = await supabase
             .from('notifications')
-            .update({ read_at: new Date().toISOString() })
-            .eq('id', notificationId)
-            .is('read_at', null);
+            .update({ read_at: newReadAt })
+            .eq('id', notification.id);
 
         if (error) {
             toaster.create({
                 title: 'Error',
-                description: 'Could not mark notification as read.',
+                description: 'Could not update notification status.',
                 type: 'error',
                 closable: true,
             });
@@ -72,10 +72,8 @@ export default function NotificationsPage() {
         }
 
         setNotifications((current) =>
-            current.map((notification) =>
-                notification.id === notificationId
-                    ? { ...notification, read_at: new Date().toISOString() }
-                    : notification,
+            current.map((item) =>
+                item.id === notification.id ? { ...item, read_at: newReadAt } : item,
             ),
         );
     }
@@ -170,7 +168,7 @@ export default function NotificationsPage() {
                                             href={notification.link}
                                             onClick={() => {
                                                 if (!notification.read_at) {
-                                                    void markAsRead(notification.id);
+                                                    void toggleReadStatus(notification);
                                                 }
                                             }}
                                         >
@@ -180,15 +178,13 @@ export default function NotificationsPage() {
                                         </Link>
                                     )}
 
-                                    {!notification.read_at && (
-                                        <Button
-                                            size='sm'
-                                            variant='ghost'
-                                            onClick={() => markAsRead(notification.id)}
-                                        >
-                                            Mark as read
-                                        </Button>
-                                    )}
+                                    <Button
+                                        size='sm'
+                                        variant='ghost'
+                                        onClick={() => toggleReadStatus(notification)}
+                                    >
+                                        {notification.read_at ? 'Mark as unread' : 'Mark as read'}
+                                    </Button>
                                 </HStack>
                             </Card.Body>
                         </Card.Root>

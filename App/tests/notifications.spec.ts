@@ -161,8 +161,12 @@ test.describe.serial('Notifications for a posting', () => {
 
     test('AC-24.2 a new application shows as a notification for the Recruiter', async () => {
         await seeker.goto(`/jobs/${jobId}`);
+        // Apply Now is enabled once the page has checked the Worker has not applied yet.
         await seeker.getByRole('button', { name: 'Apply Now' }).click();
-        await expect(seeker.getByRole('button', { name: 'Applied' })).toBeVisible();
+        await expect(
+            seeker.getByText('Your application was submitted successfully.'),
+        ).toBeVisible();
+        await expect(seeker.getByRole('button', { name: 'Applied' })).toBeDisabled();
 
         const list = await openNotifications(recruiter);
         await list.getByText(`${worker.fullName} applied to ${title}.`).click();

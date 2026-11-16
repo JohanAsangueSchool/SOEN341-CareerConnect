@@ -139,7 +139,9 @@ test('AC-16.2 the detail view shows the description, company, location, type and
     let card = cards.first();
     let description = '';
     for (let i = 0; i < (await cards.count()); i++) {
-        const text = (await cards.nth(i).locator('.chakra-card__description').textContent())?.trim();
+        const text = (
+            await cards.nth(i).locator('.chakra-card__description').textContent()
+        )?.trim();
         if (text && text !== 'No description.') {
             card = cards.nth(i);
             description = text;

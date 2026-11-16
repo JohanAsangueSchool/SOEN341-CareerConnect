@@ -43,7 +43,6 @@ type JobDetailType = {
     application_deadline: string | null;
     recruiter_id: string | null;
     created_at: string;
-    application_deadline: string | null;
 };
 
 export default function JobDetailPage({ params, searchParams }: PageProps<'/jobs/[id]'>) {

@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import '@/styles/globals.css';
+
 import { Provider } from '@/components/ui/provider';
 import { Toaster } from '@/components/ui/toaster';
+import '@/styles/globals.css';
 
 const interFont = Inter({
     subsets: ['latin', 'latin-ext'],

@@ -1,14 +1,16 @@
 'use client';
 
-import { PasswordInput } from '@/components/ui/password-input';
-import { toaster } from '@/components/ui/toaster';
-import { loginFormSchema } from '@/utils/forms/auth';
 import { Button, Field, Fieldset, Input } from '@chakra-ui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { login } from './actions';
 import { unstable_rethrow } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+
+import { PasswordInput } from '@/components/ui/password-input';
+import { toaster } from '@/components/ui/toaster';
+import { loginFormSchema } from '@/utils/forms/auth';
+
+import { login } from './actions';
 
 export default function SignInPage() {
     const {

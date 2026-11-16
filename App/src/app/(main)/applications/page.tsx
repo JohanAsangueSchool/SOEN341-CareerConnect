@@ -26,10 +26,7 @@ import {
 
 import { toaster } from '@/components/ui/toaster';
 import { useUserProfile } from '@/contexts/user_profile';
-import {
-    getRecruiterApplications,
-    getRecruiterJobs,
-} from '@/lib/supabase/apis';
+import { getRecruiterApplications, getRecruiterJobs } from '@/lib/supabase/apis';
 import { createClientSupabase } from '@/lib/supabase/client';
 import { applicationStatusColorPalette } from '@/utils/applications';
 import { ApplicationStatusEnumType, ApplicationStatusEnumValues } from '@/utils/enums';
@@ -37,7 +34,6 @@ import { validRequestStatus } from '@/utils/function';
 
 import { updateApplicationStatus } from './actions';
 import ApplicationHistory from './application-history';
-
 
 type RecruiterApplication = {
     id: string;
@@ -71,10 +67,9 @@ export default function ApplicationsPage() {
             <RecruiterApplications />
         </Suspense>
     ) : (
-         <ApplicationHistory />
+        <ApplicationHistory />
     );
 }
-
 
 function RecruiterApplications() {
     const router = useRouter();
